@@ -1,0 +1,4 @@
+#ifndef PDC_RPC_ORIGIN_MECURY_H
+#define PDC_RPC_ORIGIN_MECURY_H
+
+#endif /* PDC_RPC_ORIGIN_MECURY_H */
