@@ -33,7 +33,9 @@
 #include "mercury_request.h"
 #include "pdc_region.h"
 #include "dart_core.h"
-#include "hashset.h"
+#include "pdc_set.h"
+#include "pdc_compare.h"
+#include "pdc_hash.h"
 
 extern int                      pdc_server_num_g;
 extern int                      pdc_client_mpi_rank_g;
@@ -181,11 +183,12 @@ struct client_genetic_lookup_args {
     int64_t int64_value4;
 };
 
-typedef struct dart_perform_one_thread_param_t {
+struct _dart_perform_one_thread_param {
     int                           server_id;
     dart_perform_one_server_in_t *dart_in;
-    hashset_t *                   hashset;
-} dart_perform_one_thread_param_t;
+    uint64_t **                   dart_out;
+    size_t *                      dart_out_size;
+};
 
 #define PDC_CLIENT_DATA_SERVER() ((pdc_client_mpi_rank_g / pdc_nclient_per_server_g) % pdc_server_num_g)
 
@@ -673,15 +676,30 @@ perr_t PDC_Client_create_cont_id_mpi(const char *cont_name, pdcid_t cont_create_
 perr_t PDC_Client_query_kvtag(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_ids);
 
 /**
- * Client sends query requests to server (used by MPI mode)
+ * Client sends query requests to server (used by MPI mode), each client gets a subset of the
+ * queried results
  *
- * \param kvtag [IN]            *********
- * \param n_res [IN]            **********
- * \param pdc_ids [OUT]         *********
+ * \param kvtag [IN]            kvtag
+ * \param n_res [OUT]           number of hits
+ * \param pdc_ids [OUT]         object ids of hits, unordered
  *
  * \return Non-negative on success/Negative on failure
  */
 perr_t PDC_Client_query_kvtag_col(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_ids);
+
+#ifdef ENABLE_MPI
+/**
+ * Client sends query requests to server (used by MPI mode), all clients get the same aggregated
+ * query results, currently assumes MPI_COMM_WORLD
+ *
+ * \param kvtag [IN]            kvtag
+ * \param n_res [OUT]           number of hits
+ * \param pdc_ids [OUT]         object ids of hits, unordered
+ *
+ * \return Non-negative on success/Negative on failure
+ */
+perr_t PDC_Client_query_kvtag_mpi(const pdc_kvtag_t *kvtag, int *n_res, uint64_t **pdc_ids, MPI_Comm comm);
+#endif
 
 /**
  * Client sends query requests to server (used by MPI mode)
@@ -1016,6 +1034,18 @@ perr_t PDC_free_kvtag(pdc_kvtag_t **kvtag);
 perr_t PDC_Client_del_metadata(pdcid_t id, int is_cont);
 
 /**
+ * Return the global dart_g from client
+ *
+ */
+DART *get_dart_g();
+
+/**
+ * To lookup the server just in case.
+ *
+ */
+perr_t server_lookup_connection(int serverId, int retry_times);
+
+/**
  * Return the abstract of the server by server ID
  *
  *
@@ -1024,6 +1054,7 @@ dart_server dart_retrieve_server_info_cb(uint32_t serverId);
 
 /**
  * Search through dart index with key-value pair.
+ * Each calling client will send the request and get the complete result.
  * if the value is not specified, we just retrieve all the indexed data
  * on the secondary index associated with the primary index
  * specified by attr_name;
@@ -1034,7 +1065,26 @@ dart_server dart_retrieve_server_info_cb(uint32_t serverId);
  * \param out      [OUT]    Object IDs
  */
 perr_t PDC_Client_search_obj_ref_through_dart(dart_hash_algo_t hash_algo, char *query_string,
-                                              dart_object_ref_type_t ref_type, int *n_res, uint64_t ***out);
+                                              dart_object_ref_type_t ref_type, int *n_res, uint64_t **out);
+
+#ifdef ENABLE_MPI
+/**
+ * Search through dart index with key-value pair.
+ * This is an MPI version of the search function. Multiple ranks can call this function, but only one rank
+ * sends the request and gets the result and broadcasts the result to all other ranks.
+ * if the value is not
+ * specified, we just retrieve all the indexed data on the secondary index associated with the primary index
+ * specified by attr_name;
+ *
+ * \param hash_algo     [IN]    name of the hashing algorithm
+ * \param query_string [IN]    Name of the attribute
+ * \param n_res [OUT]   Number of object IDs
+ * \param out      [OUT]    Object IDs
+ */
+perr_t PDC_Client_search_obj_ref_through_dart_mpi(dart_hash_algo_t hash_algo, char *query_string,
+                                                  dart_object_ref_type_t ref_type, int *n_res, uint64_t **out,
+                                                  MPI_Comm comm);
+#endif
 
 /**
  * Delete the inverted mapping between value and data.
@@ -1063,11 +1113,5 @@ perr_t PDC_Client_delete_obj_ref_from_dart(dart_hash_algo_t hash_algo, char *att
  */
 perr_t PDC_Client_insert_obj_ref_into_dart(dart_hash_algo_t hash_algo, char *attr_key, char *attr_val,
                                            dart_object_ref_type_t ref_type, uint64_t data);
-
-/**
- * Return the global dart_g from client
- *
- */
-DART *get_dart_g();
 
 #endif /* PDC_CLIENT_CONNECT_H */

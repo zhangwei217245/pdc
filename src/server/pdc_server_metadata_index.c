@@ -1,5 +1,7 @@
 #include "pdc_server_metadata_index.h"
 
+#define DART_SERVER_DEBUG 0
+
 // DART search
 int64_t   indexed_word_count_g        = 0;
 int64_t   server_request_count_g      = 0;
@@ -213,14 +215,16 @@ create_prefix_index_for_attr_value(void **index, unsigned char *attr_value, void
 
     art_tree *art_value_prefix_tree = (art_tree *)*index;
 
-    int       len        = strlen((const char *)attr_value);
-    hashset_t obj_id_set = (hashset_t)art_search(art_value_prefix_tree, attr_value, len);
+    int  len        = strlen((const char *)attr_value);
+    Set *obj_id_set = (Set *)art_search(art_value_prefix_tree, attr_value, len);
     if (obj_id_set == NULL) {
-        obj_id_set = hashset_create();
+        obj_id_set = set_new(ui64_hash, ui64_equal);
+        set_register_free_function(obj_id_set, free);
+
         art_insert(art_value_prefix_tree, attr_value, len, (void *)obj_id_set);
     }
 
-    int indexed = hashset_add(obj_id_set, data);
+    int indexed = set_insert(obj_id_set, data);
 
     if (indexed == -1) {
         return FAIL;
@@ -275,19 +279,25 @@ metadata_index_create(char *attr_key, char *attr_value, uint64_t obj_locator, in
     perr_t      ret_value = FAIL;
     stopwatch_t timer;
     timer_start(&timer);
+    uint64_t *data = (uint64_t *)calloc(1, sizeof(uint64_t));
+    *data          = obj_locator;
 
     // if (index_type == DHT_FULL_HASH) {
-    //     create_hash_table_for_keyword(attr_key, attr_value, strlen(attr_key), (void *)obj_locator);
+    // FIXME: remember to check obj_locator type inside of this function below
+    //     create_hash_table_for_keyword(attr_key, attr_value, strlen(attr_key), (void *)data);
     // }
     // else if (index_type == DHT_INITIAL_HASH) {
-    //     create_hash_table_for_keyword(attr_key, attr_value, 1, (void *)obj_locator);
+    // FIXME: remember to check obj_locator type inside of this function below
+    //     create_hash_table_for_keyword(attr_key, attr_value, 1, (void *)data);
     // }
     // else if (index_type == DART_HASH) {
-    create_index_for_attr_name(attr_key, attr_value, (void *)obj_locator);
+    create_index_for_attr_name(attr_key, attr_value, (void *)data);
     // }
     timer_pause(&timer);
-    println("[Server_Side_Insert_%d] Timer to insert a keyword %s : %s into index = %d microseconds",
-            pdc_server_rank_g, attr_key, attr_value, timer_delta_us(&timer));
+    if (DART_SERVER_DEBUG) {
+        printf("[Server_Side_Insert_%d] Timer to insert a keyword %s : %s into index = %d microseconds\n",
+               pdc_server_rank_g, attr_key, attr_value, timer_delta_us(&timer));
+    }
     indexed_word_count_g++;
     ret_value = SUCCEED;
     return ret_value;
@@ -308,8 +318,8 @@ delete_prefix_index_for_attr_value(void **index, unsigned char *attr_value, void
 
     art_tree *art_value_prefix_tree = (art_tree *)*index;
 
-    int       len        = strlen((const char *)attr_value);
-    hashset_t obj_id_set = (hashset_t)art_search(art_value_prefix_tree, attr_value, len);
+    int  len        = strlen((const char *)attr_value);
+    Set *obj_id_set = (Set *)art_search(art_value_prefix_tree, attr_value, len);
     if (obj_id_set == NULL) {
         println("The obj_id_set is NULL, there nothing more to delete.");
         if (art_size(art_value_prefix_tree) == 0) {
@@ -318,10 +328,10 @@ delete_prefix_index_for_attr_value(void **index, unsigned char *attr_value, void
         return ret;
     }
 
-    hashset_remove(obj_id_set, data);
-    if (hashset_num_items(obj_id_set) == 0) {
+    set_remove(obj_id_set, data);
+    if (set_num_entries(obj_id_set) == 0) {
         art_delete(art_value_prefix_tree, attr_value, len);
-        hashset_destroy(obj_id_set);
+        set_free(obj_id_set);
     }
     return ret;
 }
@@ -378,8 +388,10 @@ metadata_index_delete(char *attr_key, char *attr_value, uint64_t obj_locator, in
     // }
 
     timer_pause(&timer);
-    println("[Server_Side_Delete_%d] Timer to delete a keyword from index = %d microseconds",
-            pdc_server_rank_g, timer_delta_us(&timer));
+    if (DART_SERVER_DEBUG) {
+        printf("[Server_Side_Delete_%d] Timer to delete a keyword %s : %s from index = %d microseconds\n",
+               pdc_server_rank_g, attr_key, attr_value, timer_delta_us(&timer));
+    }
     indexed_word_count_g--;
     ret_value = SUCCEED;
     return ret_value;
@@ -411,21 +423,20 @@ level_two_art_callback(void *data, const unsigned char *key, uint32_t key_len, v
     pdc_art_iterator_param_t *param = (pdc_art_iterator_param_t *)(data);
     // println("Level two start");
     if (param->level_two_infix != NULL) {
-        if (contains((char *)key, param->level_two_infix) == 0) {
+        if (contains((const char *)key, (const char *)param->level_two_infix) == 0) {
             return 0;
         }
     }
     if (value != NULL) {
-        hashset_t obj_id_set = (hashset_t)value;
-        int       idx        = 0;
-        int       count      = 0;
-        while (count <= obj_id_set->nitems && idx < obj_id_set->capacity) {
-            if (obj_id_set->items[idx] != 0) {
-                hashset_add(param->out, (void *)obj_id_set->items[idx]);
-                param->total_count = param->total_count + 1;
-                count++;
-            }
-            idx++;
+        Set *       obj_id_set = (Set *)value;
+        SetIterator value_set_iter;
+        set_iterate(obj_id_set, &value_set_iter);
+
+        while (set_iter_has_more(&value_set_iter)) {
+            uint64_t *item      = (uint64_t *)set_iter_next(&value_set_iter);
+            uint64_t *itemValue = (uint64_t *)calloc(1, sizeof(uint64_t));
+            *itemValue          = *item;
+            set_insert(param->out, itemValue);
         }
     }
     // println("Level two finish");
@@ -463,8 +474,8 @@ level_one_art_callback(void *data, const unsigned char *key, uint32_t key_len, v
             case PATTERN_EXACT:
                 tok = secondary_query;
                 if (leafcnt->extra_prefix_index != NULL) {
-                    hashset_t obj_id_set =
-                        (hashset_t)art_search(leafcnt->extra_prefix_index, (unsigned char *)tok, strlen(tok));
+                    Set *obj_id_set =
+                        (Set *)art_search(leafcnt->extra_prefix_index, (unsigned char *)tok, strlen(tok));
                     if (obj_id_set != NULL) {
                         level_two_art_callback((void *)param, (unsigned char *)tok, strlen(tok),
                                                (void *)obj_id_set);
@@ -501,7 +512,7 @@ level_one_art_callback(void *data, const unsigned char *key, uint32_t key_len, v
 }
 
 perr_t
-metadata_index_search(char *query, int index_type, uint64_t *n_obj_ids_ptr, uint64_t ***buf_ptrs)
+metadata_index_search(char *query, int index_type, uint64_t *n_obj_ids_ptr, uint64_t **buf_ptrs)
 {
 
     perr_t      result = SUCCEED;
@@ -514,7 +525,8 @@ metadata_index_search(char *query, int index_type, uint64_t *n_obj_ids_ptr, uint
 
     pdc_art_iterator_param_t *param = (pdc_art_iterator_param_t *)calloc(1, sizeof(pdc_art_iterator_param_t));
     param->query_str                = v_query;
-    param->out                      = hashset_create();
+    param->out                      = set_new(ui64_hash, ui64_equal);
+    set_register_free_function(param->out, free);
 
     timer_start(&index_timer);
 
@@ -570,37 +582,30 @@ metadata_index_search(char *query, int index_type, uint64_t *n_obj_ids_ptr, uint
 
     uint32_t i = 0;
 
-    size_t num_ids = hashset_num_items(param->out);
-    if (num_ids > 0) {
-        *n_obj_ids_ptr = (uint64_t)num_ids;
-        // *n_obj_ids_ptr = (uint64_t)param->total_count;
+    *n_obj_ids_ptr = set_num_entries(param->out);
+    *buf_ptrs      = (uint64_t *)calloc(*n_obj_ids_ptr, sizeof(uint64_t));
 
-        *buf_ptrs = (uint64_t **)calloc(*n_obj_ids_ptr, sizeof(uint64_t *));
-        for (i = 0; i < (*n_obj_ids_ptr); i++) {
-            (*buf_ptrs)[i] = (uint64_t *)calloc(1, sizeof(uint64_t));
-        }
-
-        i              = 0;
-        size_t itr_idx = 0;
-        while (i <= param->out->nitems && itr_idx < param->out->capacity) {
-            if (param->out->items[itr_idx] != 0) {
-                ((uint64_t *)(*buf_ptrs)[i])[0] = param->out->items[itr_idx];
-                i++;
-            }
-            itr_idx++;
-        }
+    SetIterator iter;
+    set_iterate(param->out, &iter);
+    while (set_iter_has_more(&iter)) {
+        uint64_t *item = (uint64_t *)set_iter_next(&iter);
+        (*buf_ptrs)[i] = *item;
+        i++;
     }
+    set_free(param->out);
 
     timer_pause(&index_timer);
-    println("[Server_Side_%s_%d] Time to address query '%s' and get %d results  = %ld microseconds",
-            qType_string, pdc_server_rank_g, query, *n_obj_ids_ptr, timer_delta_us(&index_timer));
+    if (DART_SERVER_DEBUG) {
+        printf("[Server_Side_%s_%d] Time to address query '%s' and get %d results  = %ld microseconds\n",
+               qType_string, pdc_server_rank_g, query, *n_obj_ids_ptr, timer_delta_us(&index_timer));
+    }
     server_request_count_g++;
     return result;
 }
 
 perr_t
 PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t *in, dart_perform_one_server_out_t *out,
-                                   uint64_t *n_obj_ids_ptr, uint64_t ***buf_ptrs)
+                                   uint64_t *n_obj_ids_ptr, uint64_t **buf_ptrs)
 {
     perr_t                 result    = SUCCEED;
     dart_op_type_t         op_type   = in->op_type;
@@ -635,6 +640,5 @@ PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t *in, dart_perfor
             out->has_bulk = 1;
         }
     }
-done:
     return result;
 }

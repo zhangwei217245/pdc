@@ -62,6 +62,25 @@ set(PDC_PACKAGE_VERSION_MINOR "${PDC_VERSION_PATCH}")
 set(PDC_PACKAGE_STRING "${PDC_PACKAGE_NAME} ${PDC_PACKAGE_VERSION}")
 set(PDC_PACKAGE_TARNAME "${PDC_PACKAGE}")
 
+
+#------------------------------------------------------------------------------
+# Setup CMake Prefix Paths for searching external libraries.
+#------------------------------------------------------------------------------
+if(NOT CMAKE_PREFIX_PATH)
+  set(CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX})
+endif()
+
+#------------------------------------------------------------------------------
+#  general cmake flags:
+#    -DCMAKE_INSTALL_PREFIX=/usr/local     -- the prefix for installing
+#    -DCMAKE_BUILD_TYPE=type               -- type can be Debug, Release, ...
+#    -DCMAKE_PREFIX_PATH=/dir              -- external packages
+#
+#     note that CMAKE_PREFIX_PATH can be a list of directories:
+#      -DCMAKE_PREFIX_PATH='/dir1;/dir2;/dir3'
+#------------------------------------------------------------------------------
+
+
 #------------------------------------------------------------------------------
 # Setup install and output Directories
 #------------------------------------------------------------------------------
@@ -80,6 +99,9 @@ endif()
 if(NOT PDC_INSTALL_DATA_DIR)
   set(PDC_INSTALL_DATA_DIR ${CMAKE_INSTALL_PREFIX}/share)
 endif()
+if(NOT PDC_INSTALL_SHARE_DIR)
+  set(PDC_INSTALL_SHARE_DIR ${CMAKE_INSTALL_PREFIX}/share/cmake/pdc)
+endif()
 
 
 # The purpose of setting CMAKE_INSTALL_RPATH_USE_LINK_PATH to TRUE is to 
@@ -95,6 +117,19 @@ endif()
 if(NOT CMAKE_INSTALL_RPATH_USE_LINK_PATH)
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif()
+
+#------------------------------------------------------------------------------
+# Setup CMake Prefix Paths for searching external libraries.
+#------------------------------------------------------------------------------
+#     note that CMAKE_PREFIX_PATH can be a list of directories:
+#      -DCMAKE_PREFIX_PATH='/dir1;/dir2;/dir3'
+
+if(NOT CMAKE_PREFIX_PATH)
+  set(CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX})
+endif()
+# MERCURY
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} $ENV{MERCURY_DIR})
+# ANY Future external package goes here...
 
 #------------------------------------------------------------------------------
 # Setup CMake Environment
@@ -152,41 +187,22 @@ endif()
 # Set whether or not to disable compiler warnings
 #------------------------------------------------------------------------------
 set(SUPPRESSED_LIST "")
-# Disable warnings for unused parameters
-option(PDC_SUPPRESS_UNUSED_ARG "Disable unused argument warnings" ON)
-if(PDC_SUPPRESS_UNUSED_ARG)
-  set(SUPPRESSED_LIST "-Wno-unused-parameter" ${SUPPRESSED_LIST})
-endif()
 
-# Disable warnings for unused variables
-option(PDC_SUPPRESS_UNUSED_VAR "Disable unused variable warnings" ON)
-if(PDC_SUPPRESS_UNUSED_VAR)
-  set(SUPPRESSED_LIST "-Wno-unused-variable" ${SUPPRESSED_LIST})
-endif()
-
-# Disable warnings for unused functions
-option(PDC_SUPPRESS_UNUSED_FUNC "Disable unused function warnings" ON)
-if(PDC_SUPPRESS_UNUSED_FUNC)
-  set(SUPPRESSED_LIST "-Wno-unused-function" ${SUPPRESSED_LIST})
-endif()
-
-# Disable warnings for -Wunused-result
-option(PDC_SUPPRESS_UNUSED_RESULT "Disable unused result warnings" ON)
-if(PDC_SUPPRESS_UNUSED_RESULT)
-  set(SUPPRESSED_LIST "-Wno-unused-result" ${SUPPRESSED_LIST})
-endif()
-
-# Disable warnings for -Wmaybe-uninitialized
-option(PDC_SUPPRESS_MAYBE_UNINIT "Disable maybe-uninitialized warnings" ON)
-if(PDC_SUPPRESS_MAYBE_UNINIT)
-  if(NOT APPLE)
+# Disable warnings for potentially ignorable issues
+option(SUPPRESS_IGNORABLE_WARNINGS "Disable warnings for potentially ignorable issues" ON)
+if(SUPPRESS_IGNORABLE_WARNINGS)
+  if(APPLE)
+    set(SUPPRESSED_LIST "-Wno-deprecated-non-prototype" ${SUPPRESSED_LIST})
+  else()
     set(SUPPRESSED_LIST "-Wno-maybe-uninitialized" ${SUPPRESSED_LIST})
   endif()
-endif()
-
-# Disable warnings for -Wunused-but-set-variable
-option(PDC_SUPPRESS_UNUSED_BUT_SET "Disable unused-but-set-variable warnings" ON)
-if(PDC_SUPPRESS_UNUSED_BUT_SET)
+  set(SUPPRESSED_LIST "-Wno-sign-compare" ${SUPPRESSED_LIST})
+  set(SUPPRESSED_LIST "-Wno-format" ${SUPPRESSED_LIST})
+  set(SUPPRESSED_LIST "-Wno-cast-qual" ${SUPPRESSED_LIST})
+  set(SUPPRESSED_LIST "-Wno-unused-parameter" ${SUPPRESSED_LIST})
+  set(SUPPRESSED_LIST "-Wno-unused-variable" ${SUPPRESSED_LIST})
+  set(SUPPRESSED_LIST "-Wno-unused-function" ${SUPPRESSED_LIST})
+  set(SUPPRESSED_LIST "-Wno-unused-result" ${SUPPRESSED_LIST})
   set(SUPPRESSED_LIST "-Wno-unused-but-set-variable" ${SUPPRESSED_LIST})
 endif()
 
@@ -305,6 +321,24 @@ if(PDC_USE_CRAY_DRC)
 endif()
 
 #-----------------------------------------------------------------------------
+# Julia Support option
+#-----------------------------------------------------------------------------
+option(PDC_ENABLE_JULIA_SUPPORT "Enable Julia Support." OFF)
+if(PDC_ENABLE_JULIA_SUPPORT)
+  find_package(JULIA REQUIRED)
+  if(JULIA_FOUND)
+    set(PDC_ENABLE_JULIA 1)
+    # include_directories(${JULIA_INCLUDE_DIRS})
+    # set(PDC_EXT_LIB_DEPENDENCIES
+    #   ${PDC_EXT_LIB_DEPENDENCIES}
+    #   ${JULIA_LIBRARIES}
+    # )
+  else()
+    message(FATAL_ERROR "Could not find Julia.")
+  endif()
+endif()
+
+#-----------------------------------------------------------------------------
 # MPI option
 #-----------------------------------------------------------------------------
 option(PDC_ENABLE_MPI "Enable MPI." ON)
@@ -335,7 +369,7 @@ endif()
 #-----------------------------------------------------------------------------
 # SERVER CACHE option
 #-----------------------------------------------------------------------------
-option(PDC_SERVER_CACHE "Enable timing." OFF)
+option(PDC_SERVER_CACHE "Enable Server Caching." OFF)
 if(PDC_SERVER_CACHE)
   set(PDC_SERVER_CACHE 1)
 endif()
@@ -538,6 +572,9 @@ install(
   FILES_MATCHING PATTERN "*.sh"
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )
+
+# set(ADD_EXE_PERMISSION_CMD "chmod +x ${}/test/*")
+# add_custom_command(TARGET ${PROJECT_NAME} POST_INSTALL COMMAND ${add_permission_cmd})
 
 
 #install(

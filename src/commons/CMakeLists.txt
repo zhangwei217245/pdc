@@ -18,21 +18,20 @@ if(THREADS_HAVE_PTHREAD_ARG)
   set_property(TARGET ${PDC_COMMON_LIBRARY_NAME} PROPERTY INTERFACE_COMPILE_OPTIONS "-pthread")
 endif()
 
+# Math library
+
+find_library(MATH_LIBRARY m)
+if(MATH_LIBRARY)
+  set(PDC_EXT_LIB_DEPENDENCIES ${MATH_LIBRARY} ${PDC_EXT_LIB_DEPENDENCIES}) 
+endif()
 
 # Mercury
 find_package(MERCURY REQUIRED)
 if(MERCURY_FOUND)
-  message(STATUS "mercury dir = ${MERCURY_DIR}")
-  # NOTE: enable the following if you need ${MERCURY_INCLUDE_DIR} in the future
-  # NOTE: remember to add MERCURY_HOME to PATH or CMAKE_PREFIX_PATH if you enable the following.
-  find_path(MERCURY_INCLUDE_DIR mercury.h HINTS ${MERCURY_DIR})
-  find_library(MERCURY_LIBRARY mercury HINTS ${MERCURY_DIR})
-  message(STATUS "mercury include dir = ${MERCURY_INCLUDE_DIR}")
-  message(STATUS "mercury lib = ${MERCURY_LIBRARY}")
-  set(PDC_EXT_INCLUDE_DEPENDENCIES ${MERCURY_INCLUDE_DIR}
+  set(PDC_EXT_INCLUDE_DEPENDENCIES ${MERCURY_INCLUDE_DIRS}
     ${PDC_EXT_INCLUDE_DEPENDENCIES}
     )
-  set(PDC_EXT_LIB_DEPENDENCIES mercury ${PDC_EXT_LIB_DEPENDENCIES})
+  set(PDC_EXT_LIB_DEPENDENCIES ${MERCURY_LIBRARIES} ${PDC_EXT_LIB_DEPENDENCIES})
 endif()
 
 include_directories(${PDC_EXT_INCLUDE_DEPENDENCIES})
@@ -65,11 +64,16 @@ include_directories(
   ${PDC_COMMONS_INCLUDE_DIRS}
 )
 
-message(STATUS "PDC_COMMONS_INCLUDE_DIRS: ${PDC_COMMONS_INCLUDE_DIRS}")
+message(STATUS "===MERCURY_INCLUDE_DIRS: ${MERCURY_INCLUDE_DIRS}")
+message(STATUS "===PDC_EXT_INCLUDE_DEPENDENCIES: ${PDC_EXT_INCLUDE_DEPENDENCIES}")
+message(STATUS "===PDC_COMMONS_INCLUDE_DIRS: ${PDC_COMMONS_INCLUDE_DIRS}")
 
 install(
   FILES
     ${CMAKE_BINARY_DIR}/pdc_config.h
+    ${PDC_SOURCE_DIR}/src/commons/utils/include/pdc_id_pkg.h
+    ${PDC_SOURCE_DIR}/src/commons/utils/include/pdc_malloc.h
+    ${PDC_SOURCE_DIR}/src/commons/utils/include/pdc_linkedlist.h
   DESTINATION
     ${PDC_INSTALL_INCLUDE_DIR}
   COMPONENT
@@ -100,8 +104,8 @@ endif()
 file(GLOB_RECURSE PDC_COMMONS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.c)
 file(GLOB_RECURSE PDC_COMMONS_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
-list(FILTER PDC_COMMONS_SOURCES EXCLUDE REGEX "${CMAKE_CURRENT_SOURCE_DIR}/rpc")
-list(FILTER PDC_COMMONS_HEADERS EXCLUDE REGEX "${CMAKE_CURRENT_SOURCE_DIR}/rpc")
+# list(FILTER PDC_COMMONS_SOURCES EXCLUDE REGEX "${CMAKE_CURRENT_SOURCE_DIR}/rpc")
+# list(FILTER PDC_COMMONS_HEADERS EXCLUDE REGEX "${CMAKE_CURRENT_SOURCE_DIR}/rpc")
 
 #------------------------------------------------------------------------------
 # Libraries
