@@ -33,6 +33,7 @@
 #include "mercury_atomic.h"
 
 #include "pdc_hash-table.h"
+#include "hashset.h"
 
 #include "pdc_server_common.h"
 #include "pdc_client_server_common.h"

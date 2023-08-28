@@ -206,6 +206,11 @@ if(SUPPRESS_IGNORABLE_WARNINGS)
   set(SUPPRESSED_LIST "-Wno-unused-but-set-variable" ${SUPPRESSED_LIST})
 endif()
 
+# Disable warnings for -Wdeprecated-non-prototype if on Apple
+if(APPLE)
+  set(SUPPRESSED_LIST "-Wno-deprecated-non-prototype" ${SUPPRESSED_LIST})
+endif()
+
 #------------------------------------------------------------------------------
 # Set a default build type if none was specified
 #------------------------------------------------------------------------------
