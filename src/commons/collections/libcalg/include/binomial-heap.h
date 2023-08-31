@@ -51,13 +51,13 @@ extern "C" {
  */
 
 typedef enum {
-	/** A minimum heap. */
+    /** A minimum heap. */
 
-	BINOMIAL_HEAP_TYPE_MIN,
+    BINOMIAL_HEAP_TYPE_MIN,
 
-	/** A maximum heap. */
+    /** A maximum heap. */
 
-	BINOMIAL_HEAP_TYPE_MAX
+    BINOMIAL_HEAP_TYPE_MAX
 } BinomialHeapType;
 
 /**
@@ -70,7 +70,7 @@ typedef void *BinomialHeapValue;
  * A null @ref BinomialHeapValue.
  */
 
-#define BINOMIAL_HEAP_NULL ((void *) 0)
+#define BINOMIAL_HEAP_NULL ((void *)0)
 
 /**
  * Type of function used to compare values in a binomial heap.
@@ -82,8 +82,7 @@ typedef void *BinomialHeapValue;
  *                         zero if the two are equal.
  */
 
-typedef int (*BinomialHeapCompareFunc)(BinomialHeapValue value1,
-                                       BinomialHeapValue value2);
+typedef int (*BinomialHeapCompareFunc)(BinomialHeapValue value1, BinomialHeapValue value2);
 
 /**
  * A binomial heap data structure.
@@ -101,8 +100,7 @@ typedef struct _BinomialHeap BinomialHeap;
  *                         to allocate the memory.
  */
 
-BinomialHeap *binomial_heap_new(BinomialHeapType heap_type,
-                                BinomialHeapCompareFunc compare_func);
+BinomialHeap *binomial_heap_new(BinomialHeapType heap_type, BinomialHeapCompareFunc compare_func);
 
 /**
  * Destroy a binomial heap.
@@ -148,4 +146,3 @@ unsigned int binomial_heap_num_entries(BinomialHeap *heap);
 #endif
 
 #endif /* #ifndef ALGORITHM_BINOMIAL_HEAP_H */
-

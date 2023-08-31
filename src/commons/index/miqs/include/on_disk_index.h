@@ -17,7 +17,7 @@ typedef struct {
     int is_numeric;
     int is_float;
     // void ***bpt;
-    rbt_t *rbt;
+    rbt_t *   rbt;
     art_tree *art;
 
     void *secondary_idx;
@@ -40,39 +40,39 @@ typedef struct {
     size_t obj_list_pos;
 } file_obj_pair_t;
 
-typedef struct{
+typedef struct {
     miqs_attr_type_t type; // type: 1, int, 2, float, 3. string
-    char *name;
-    void *data;
-    char *file_path;
-    char *object_path;
+    char *           name;
+    void *           data;
+    char *           file_path;
+    char *           object_path;
 } index_record_t;
 
 /**
  * Create index record in memory.
- * 
+ *
  */
-index_record_t *create_index_record(miqs_attr_type_t type, char *name, void *data, char *file_path, char *object_path);
+index_record_t *create_index_record(miqs_attr_type_t type, char *name, void *data, char *file_path,
+                                    char *object_path);
 
 /**
  *  append index_record to the current position of the stream
- *  users can call fseek to adjust the position of the file pointer to the end of the file. 
+ *  users can call fseek to adjust the position of the file pointer to the end of the file.
  */
 void append_index_record(index_record_t *ir, FILE *stream);
 
 /**
  * Print the index record just for visual verification.
- * 
+ *
  */
 void print_index_record(index_record_t ir);
 
 /**
  * Search over disk, from the beginning of a file, and collect result matching given compare function
- * 
+ *
  */
-index_record_t **find_index_record(char *name,
-        int (*compare_value)(const void *data, const void *criterion), void *criterion,
-        FILE *stream, int *out_len);
+index_record_t **find_index_record(char *name, int (*compare_value)(const void *data, const void *criterion),
+                                   void *criterion, FILE *stream, int *out_len);
 
 /**
  * Read one index record from current position of the file.

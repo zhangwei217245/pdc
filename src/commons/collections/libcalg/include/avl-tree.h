@@ -82,7 +82,7 @@ typedef void *AVLTreeValue;
  * A null @ref AVLTreeValue.
  */
 
-#define AVL_TREE_NULL ((void *) 0)
+#define AVL_TREE_NULL ((void *)0)
 
 /**
  * A node in an AVL tree.
@@ -100,10 +100,7 @@ typedef struct _AVLTreeNode AVLTreeNode;
  * An @ref AVLTreeNode can have left and right children.
  */
 
-typedef enum {
-	AVL_TREE_NODE_LEFT = 0,
-	AVL_TREE_NODE_RIGHT = 1
-} AVLTreeNodeSide;
+typedef enum { AVL_TREE_NODE_LEFT = 0, AVL_TREE_NODE_RIGHT = 1 } AVLTreeNodeSide;
 
 /**
  * Type of function used to compare keys in an AVL tree.
@@ -147,8 +144,7 @@ void avl_tree_free(AVLTree *tree);
  *                        to allocate the new memory.
  */
 
-AVLTreeNode *avl_tree_insert(AVLTree *tree, AVLTreeKey key,
-                             AVLTreeValue value);
+AVLTreeNode *avl_tree_insert(AVLTree *tree, AVLTreeKey key, AVLTreeValue value);
 
 /**
  * Remove a node from a tree.
@@ -284,4 +280,3 @@ unsigned int avl_tree_num_entries(AVLTree *tree);
 #endif
 
 #endif /* #ifndef ALGORITHM_AVLTREE_H */
-

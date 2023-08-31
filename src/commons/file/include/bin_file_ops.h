@@ -3,7 +3,6 @@
 #ifndef MIQS_BIN_FILE_OPS
 #define MIQS_BIN_FILE_OPS
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

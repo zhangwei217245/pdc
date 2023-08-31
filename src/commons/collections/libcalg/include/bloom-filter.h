@@ -86,8 +86,7 @@ typedef unsigned int (*BloomFilterHashFunc)(BloomFilterValue data);
  *                         filter.
  */
 
-BloomFilter *bloom_filter_new(unsigned int table_size,
-                              BloomFilterHashFunc hash_func,
+BloomFilter *bloom_filter_new(unsigned int table_size, BloomFilterHashFunc hash_func,
                               unsigned int num_functions);
 
 /**
@@ -162,8 +161,7 @@ void bloom_filter_load(BloomFilter *bloomfilter, unsigned char *array);
  *                             with different parameters.
  */
 
-BloomFilter *bloom_filter_union(BloomFilter *filter1,
-                                BloomFilter *filter2);
+BloomFilter *bloom_filter_union(BloomFilter *filter1, BloomFilter *filter2);
 
 /**
  * Find the intersection of two bloom filters.  Values are only ever
@@ -182,12 +180,10 @@ BloomFilter *bloom_filter_union(BloomFilter *filter1,
  *                             with different parameters.
  */
 
-BloomFilter *bloom_filter_intersection(BloomFilter *filter1,
-                                       BloomFilter *filter2);
+BloomFilter *bloom_filter_intersection(BloomFilter *filter1, BloomFilter *filter2);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* #ifndef ALGORITHM_BLOOM_FILTER_H */
-
