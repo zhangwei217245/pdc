@@ -60,7 +60,7 @@ typedef void *TrieValue;
  * A null @ref TrieValue.
  */
 
-#define TRIE_NULL ((void *) 0)
+#define TRIE_NULL ((void *)0)
 
 /**
  * Create a new trie.
@@ -107,8 +107,7 @@ int trie_insert(Trie *trie, char *key, TrieValue value);
  *                           memory for the new entry.
  */
 
-int trie_insert_binary(Trie *trie, unsigned char *key,
-                       int key_length, TrieValue value);
+int trie_insert_binary(Trie *trie, unsigned char *key, int key_length, TrieValue value);
 
 /**
  * Look up a value from its key in a trie.
@@ -178,4 +177,3 @@ unsigned int trie_num_entries(Trie *trie);
 #endif
 
 #endif /* #ifndef ALGORITHM_TRIE_H */
-

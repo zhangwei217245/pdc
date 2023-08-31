@@ -83,7 +83,7 @@ typedef void *RBTreeValue;
  * A null @ref RBTreeValue.
  */
 
-#define RB_TREE_NULL ((void *) 0)
+#define RB_TREE_NULL ((void *)0)
 
 /**
  * A node in a red-black tree.
@@ -115,18 +115,15 @@ typedef int (*RBTreeCompareFunc)(RBTreeValue data1, RBTreeValue data2);
  */
 
 typedef enum {
-	RB_TREE_NODE_RED,
-	RB_TREE_NODE_BLACK,
+    RB_TREE_NODE_RED,
+    RB_TREE_NODE_BLACK,
 } RBTreeNodeColor;
 
 /**
  * A @ref RBTreeNode can have left and right children.
  */
 
-typedef enum {
-	RB_TREE_NODE_LEFT = 0,
-	RB_TREE_NODE_RIGHT = 1
-} RBTreeNodeSide;
+typedef enum { RB_TREE_NODE_LEFT = 0, RB_TREE_NODE_RIGHT = 1 } RBTreeNodeSide;
 
 /**
  * Create a new red-black tree.
@@ -293,4 +290,3 @@ int rb_tree_num_entries(RBTree *tree);
 #endif
 
 #endif /* #ifndef ALGORITHM_RB_TREE_H */
-

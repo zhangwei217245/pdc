@@ -51,13 +51,13 @@ extern "C" {
  */
 
 typedef enum {
-	/** A minimum heap. */
+    /** A minimum heap. */
 
-	BINARY_HEAP_TYPE_MIN,
+    BINARY_HEAP_TYPE_MIN,
 
-	/** A maximum heap. */
+    /** A maximum heap. */
 
-	BINARY_HEAP_TYPE_MAX
+    BINARY_HEAP_TYPE_MAX
 } BinaryHeapType;
 
 /**
@@ -70,7 +70,7 @@ typedef void *BinaryHeapValue;
  * A null @ref BinaryHeapValue.
  */
 
-#define BINARY_HEAP_NULL ((void *) 0)
+#define BINARY_HEAP_NULL ((void *)0)
 
 /**
  * Type of function used to compare values in a binary heap.
@@ -82,8 +82,7 @@ typedef void *BinaryHeapValue;
  *                         zero if the two are equal.
  */
 
-typedef int (*BinaryHeapCompareFunc)(BinaryHeapValue value1,
-                                     BinaryHeapValue value2);
+typedef int (*BinaryHeapCompareFunc)(BinaryHeapValue value1, BinaryHeapValue value2);
 
 /**
  * A binary heap data structure.
@@ -101,8 +100,7 @@ typedef struct _BinaryHeap BinaryHeap;
  *                         to allocate the memory.
  */
 
-BinaryHeap *binary_heap_new(BinaryHeapType heap_type,
-                            BinaryHeapCompareFunc compare_func);
+BinaryHeap *binary_heap_new(BinaryHeapType heap_type, BinaryHeapCompareFunc compare_func);
 
 /**
  * Destroy a binary heap.
@@ -148,4 +146,3 @@ unsigned int binary_heap_num_entries(BinaryHeap *heap);
 #endif
 
 #endif /* #ifndef ALGORITHM_BINARY_HEAP_H */
-

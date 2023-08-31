@@ -85,15 +85,15 @@ typedef void *ListValue;
  */
 
 struct _ListIterator {
-	ListEntry **prev_next;
-	ListEntry *current;
+    ListEntry **prev_next;
+    ListEntry * current;
 };
 
 /**
  * A null @ref ListValue.
  */
 
-#define LIST_NULL ((void *) 0)
+#define LIST_NULL ((void *)0)
 
 /**
  * Callback function used to compare values in a list when sorting.
@@ -179,7 +179,7 @@ ListEntry *list_next(ListEntry *listentry);
 ListValue list_data(ListEntry *listentry);
 
 /**
- * Set the value at a list entry. The value provided will be written to the 
+ * Set the value at a list entry. The value provided will be written to the
  * given listentry. If listentry is NULL nothing is done.
  *
  * @param listentry 	Pointer to the list entry.
@@ -250,8 +250,7 @@ int list_remove_entry(ListEntry **list, ListEntry *entry);
  * @return           The number of entries removed from the list.
  */
 
-unsigned int list_remove_data(ListEntry **list, ListEqualFunc callback,
-                              ListValue data);
+unsigned int list_remove_data(ListEntry **list, ListEqualFunc callback, ListValue data);
 
 /**
  * Sort a list.
@@ -273,9 +272,7 @@ void list_sort(ListEntry **list, ListCompareFunc compare_func);
  *                       NULL if not found.
  */
 
-ListEntry *list_find_data(ListEntry *list,
-                          ListEqualFunc callback,
-                          ListValue data);
+ListEntry *list_find_data(ListEntry *list, ListEqualFunc callback, ListValue data);
 
 /**
  * Initialise a @ref ListIterator structure to iterate over a list.
@@ -321,4 +318,3 @@ void list_iter_remove(ListIterator *iterator);
 #endif
 
 #endif /* #ifndef ALGORITHM_LIST_H */
-

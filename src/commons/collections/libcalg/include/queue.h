@@ -61,7 +61,7 @@ typedef void *QueueValue;
  * A null @ref QueueValue.
  */
 
-#define QUEUE_NULL ((void *) 0)
+#define QUEUE_NULL ((void *)0)
 
 /**
  * Create a new double-ended queue.
@@ -161,4 +161,3 @@ int queue_is_empty(Queue *queue);
 #endif
 
 #endif /* #ifndef ALGORITHM_QUEUE_H */
-

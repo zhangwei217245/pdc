@@ -97,15 +97,15 @@ typedef void *SListValue;
  */
 
 struct _SListIterator {
-	SListEntry **prev_next;
-	SListEntry *current;
+    SListEntry **prev_next;
+    SListEntry * current;
 };
 
 /**
  * A null @ref SListValue.
  */
 
-#define SLIST_NULL ((void *) 0)
+#define SLIST_NULL ((void *)0)
 
 /**
  * Callback function used to compare values in a list when sorting.
@@ -176,7 +176,7 @@ SListEntry *slist_next(SListEntry *listentry);
 SListValue slist_data(SListEntry *listentry);
 
 /**
- * Set the value at a list entry. The value provided will be written to the 
+ * Set the value at a list entry. The value provided will be written to the
  * given listentry. If listentry is NULL nothing is done.
  *
  * @param listentry 	Pointer to the list entry.
@@ -247,9 +247,7 @@ int slist_remove_entry(SListEntry **list, SListEntry *entry);
  * @return           The number of entries removed from the list.
  */
 
-unsigned int slist_remove_data(SListEntry **list,
-                               SListEqualFunc callback,
-                               SListValue data);
+unsigned int slist_remove_data(SListEntry **list, SListEqualFunc callback, SListValue data);
 
 /**
  * Sort a list.
@@ -272,9 +270,7 @@ void slist_sort(SListEntry **list, SListCompareFunc compare_func);
  *                       NULL if not found.
  */
 
-SListEntry *slist_find_data(SListEntry *list,
-                            SListEqualFunc callback,
-                            SListValue data);
+SListEntry *slist_find_data(SListEntry *list, SListEqualFunc callback, SListValue data);
 
 /**
  * Initialise a @ref SListIterator structure to iterate over a list.
@@ -321,4 +317,3 @@ void slist_iter_remove(SListIterator *iterator);
 #endif
 
 #endif /* #ifndef ALGORITHM_SLIST_H */
-

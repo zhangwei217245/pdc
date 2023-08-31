@@ -32,7 +32,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  * To create a SortedArray, use @ref sortedarray_new
  * To destroy a SortedArray, use @ref sortedarray_free
  *
- * To add a value to a SortedArray, use @ref sortedarray_prepend, 
+ * To add a value to a SortedArray, use @ref sortedarray_prepend,
  * @ref sortedarray_append, or @ref sortedarray_insert.
  *
  * To remove a value from a SortedArray, use @ref sortedarray_remove
@@ -54,9 +54,9 @@ typedef void *SortedArrayValue;
 /**
  * A SortedArray structure. Use @ref sortedarray_new to create one.
  *
- * The SortedArray is an automatically resizing array which stores its 
+ * The SortedArray is an automatically resizing array which stores its
  * elements in sorted order. Userdefined functions determine the sorting order.
- * All operations on a SortedArray maintain the sorted property. Most 
+ * All operations on a SortedArray maintain the sorted property. Most
  * operations are done in O(n) time, but searching can be done in O(log n)
  * worst case.
  *
@@ -73,20 +73,18 @@ typedef struct _SortedArray SortedArray;
  *			equal.
  *
  */
-typedef int (*SortedArrayEqualFunc)(SortedArrayValue value1,
-                                    SortedArrayValue value2);
+typedef int (*SortedArrayEqualFunc)(SortedArrayValue value1, SortedArrayValue value2);
 
 /**
  * Compare two values in a SortedArray to determine their order.
  *
  * @param value1	The first value to compare.
  * @param value2	The second value to compare.
- * @return		Less than zero if value1 is compared smaller than 
+ * @return		Less than zero if value1 is compared smaller than
  * 			value2, zero if they compare equal, or greater than
  * 			zero if value1 compares greate than value2.
  */
-typedef int (*SortedArrayCompareFunc)(SortedArrayValue value1,
-                                      SortedArrayValue value2);
+typedef int (*SortedArrayCompareFunc)(SortedArrayValue value1, SortedArrayValue value2);
 
 /**
  * @brief Function to retrieve element at index i from array
@@ -108,7 +106,7 @@ unsigned int sortedarray_length(SortedArray *array);
 /**
  * Allocate a new SortedArray for use.
  *
- * @param length        Indication to the amount of memory that should be 
+ * @param length        Indication to the amount of memory that should be
  *                      allocated. If 0 is given, then a default is used.
  * @param equ_func      The function used to determine if two values in the
  *                      SortedArray equal. This may not be NULL.
@@ -118,8 +116,7 @@ unsigned int sortedarray_length(SortedArray *array);
  * @return              A new SortedArray or NULL if it was not possible to
  *                      allocate one.
  */
-SortedArray *sortedarray_new(unsigned int length, 
-                             SortedArrayEqualFunc equ_func, 
+SortedArray *sortedarray_new(unsigned int length, SortedArrayEqualFunc equ_func,
                              SortedArrayCompareFunc cmp_func);
 
 /**
@@ -139,15 +136,14 @@ void sortedarray_free(SortedArray *sortedarray);
 void sortedarray_remove(SortedArray *sortedarray, unsigned int index);
 
 /**
- * Remove a range of entities from a SortedArray while maintaining the sorted 
+ * Remove a range of entities from a SortedArray while maintaining the sorted
  * property.
  *
  * @param sortedarray   The SortedArray to remove the range of values from.
  * @param index         The starting index of the range to remove.
  * @param length        The length of the range to remove.
  */
-void sortedarray_remove_range(SortedArray *sortedarray, unsigned int index,
-                              unsigned int length);
+void sortedarray_remove_range(SortedArray *sortedarray, unsigned int index, unsigned int length);
 
 /**
  * Insert a value into a SortedArray while maintaining the sorted property.
