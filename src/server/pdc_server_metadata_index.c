@@ -1,6 +1,6 @@
 #include "pdc_server_metadata_index.h"
 
-#define DART_SERVER_DEBUG 0
+#define DART_SERVER_DEBUG 1
 
 // DART search
 int64_t   indexed_word_count_g        = 0;
@@ -294,10 +294,10 @@ metadata_index_create(char *attr_key, char *attr_value, uint64_t obj_locator, in
     create_index_for_attr_name(attr_key, attr_value, (void *)data);
     // }
     timer_pause(&timer);
-    if (DART_SERVER_DEBUG) {
-        printf("[Server_Side_Insert_%d] Timer to insert a keyword %s : %s into index = %d microseconds\n",
-               pdc_server_rank_g, attr_key, attr_value, timer_delta_us(&timer));
-    }
+    // if (DART_SERVER_DEBUG) {
+    //     printf("[Server_Side_Insert_%d] Timer to insert a keyword %s : %s into index = %d microseconds\n",
+    //            pdc_server_rank_g, attr_key, attr_value, timer_delta_us(&timer));
+    // }
     indexed_word_count_g++;
     ret_value = SUCCEED;
     return ret_value;
@@ -388,10 +388,10 @@ metadata_index_delete(char *attr_key, char *attr_value, uint64_t obj_locator, in
     // }
 
     timer_pause(&timer);
-    if (DART_SERVER_DEBUG) {
-        printf("[Server_Side_Delete_%d] Timer to delete a keyword %s : %s from index = %d microseconds\n",
-               pdc_server_rank_g, attr_key, attr_value, timer_delta_us(&timer));
-    }
+    // if (DART_SERVER_DEBUG) {
+    //     printf("[Server_Side_Delete_%d] Timer to delete a keyword %s : %s from index = %d microseconds\n",
+    //            pdc_server_rank_g, attr_key, attr_value, timer_delta_us(&timer));
+    // }
     indexed_word_count_g--;
     ret_value = SUCCEED;
     return ret_value;

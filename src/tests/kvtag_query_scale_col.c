@@ -61,7 +61,7 @@ assign_work_to_rank(int rank, int size, int nwork, int *my_count, int *my_start)
 void
 print_usage(char *name)
 {
-    printf("%s n_obj n_round n_selectivity is_using_dart\n", name);
+    printf("%s n_obj n_round n_selectivity is_using_dart query_type comm_type\n", name);
     printf("Summary: This test will create n_obj objects, and add n_selectivity tags to each object. Then it "
            "will "
            "perform n_round collective queries against the tags, each query from each client should get "
@@ -72,25 +72,59 @@ print_usage(char *name)
            "one query against one tag\n");
     printf("  n_selectivity: selectivity, on a 100 scale. \n");
     printf("  is_using_dart: 1 for using dart, 0 for not using dart\n");
+    printf("  query_type: 0 for exact, 1 for prefix, 2 for suffix, 3 for infix\n");
+    printf("  comm_type: 0 for point-to-point, 1 for collective\n");
 }
 
-char **
-gen_random_strings(int count, int maxlen, int alphabet_size)
+perr_t
+prepare_container(pdcid_t *pdc, pdcid_t *cont_prop, pdcid_t *cont, pdcid_t *obj_prop)
 {
-    int    c      = 0;
-    int    i      = 0;
-    char **result = (char **)calloc(count, sizeof(char *));
-    for (c = 0; c < count; c++) {
-        int   len = (rand() % (maxlen - 1)) + 1; // Ensure at least 1 character
-        char *str = (char *)calloc(len + 1, sizeof(char));
-        for (i = 0; i < len; i++) {
-            char chr = (char)((rand() % alphabet_size) + 65); // ASCII printable characters
-            str[i]   = chr;
-        }
-        str[len]  = '\0'; // Null-terminate the string
-        result[c] = str;
+    perr_t ret_value = FAIL;
+    // create a pdc
+    *pdc = PDCinit("pdc");
+
+    // create a container property
+    *cont_prop = PDCprop_create(PDC_CONT_CREATE, *pdc);
+    if (*cont_prop <= 0) {
+        printf("Fail to create container property @ line  %d!\n", __LINE__);
+        goto done;
     }
-    return result;
+    // create a container
+    *cont = PDCcont_create("c1", *cont_prop);
+    if (*cont <= 0) {
+        printf("Fail to create container @ line  %d!\n", __LINE__);
+        goto done;
+    }
+
+    // create an object property
+    *obj_prop = PDCprop_create(PDC_OBJ_CREATE, *pdc);
+    if (*obj_prop <= 0) {
+        printf("Fail to create object property @ line  %d!\n", __LINE__);
+        goto done;
+    }
+
+    ret_value = SUCCEED;
+done:
+    return ret_value;
+}
+
+perr_t
+creating_objects(pdcid_t **obj_ids, int my_obj, int my_obj_s, pdcid_t cont, pdcid_t obj_prop)
+{
+    perr_t ret_value = FAIL;
+    char   obj_name[128];
+    *obj_ids = (pdcid_t *)calloc(my_obj, sizeof(pdcid_t));
+    for (int i = 0; i < my_obj; i++) {
+        sprintf(obj_name, "obj%d", my_obj_s + i);
+        (*obj_ids)[i] = PDCobj_create(cont, obj_name, obj_prop);
+        if ((*obj_ids)[i] <= 0) {
+            printf("Fail to create object @ line  %d!\n", __LINE__);
+            goto done;
+        }
+    }
+    ret_value = SUCCEED;
+done:
+    return ret_value;
 }
 
 int
@@ -99,8 +133,7 @@ main(int argc, char *argv[])
     pdcid_t     pdc, cont_prop, cont, obj_prop;
     pdcid_t *   obj_ids;
     int         n_obj, n_add_tag, my_obj, my_obj_s, my_add_tag, my_add_tag_s;
-    int         proc_num, my_rank, i, v, iter, round, selectivity, is_using_dart;
-    char        obj_name[128];
+    int         proc_num, my_rank, i, v, iter, round, selectivity, is_using_dart, query_type, comm_type;
     double      stime, total_time;
     pdc_kvtag_t kvtag;
     uint64_t *  pdc_ids;
@@ -112,7 +145,7 @@ main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 #endif
 
-    if (argc < 5) {
+    if (argc < 7) {
         if (my_rank == 0)
             print_usage(argv[0]);
         goto done;
@@ -120,54 +153,29 @@ main(int argc, char *argv[])
     n_obj         = atoi(argv[1]);
     round         = atoi(argv[2]);
     selectivity   = atoi(argv[3]);
-    is_using_dart = atoi(argv[4]);
-    n_add_tag     = n_obj * selectivity / 100;
+    is_using_dart = atoi(argv[4]); // 0 for no index, 1 for using dart.
+    query_type    = atoi(argv[5]); // 0 for exact, 1 for prefix, 2 for suffix, 3 for infix,
+                                   // 4 for num_exact, 5 for num_range
+    comm_type = atoi(argv[6]);     // 0 for point-to-point, 1 for collective
+    n_add_tag = n_obj * selectivity / 100;
 
-    // create a pdc
-    pdc = PDCinit("pdc");
-
-    // create a container property
-    cont_prop = PDCprop_create(PDC_CONT_CREATE, pdc);
-    if (cont_prop <= 0)
-        printf("Fail to create container property @ line  %d!\n", __LINE__);
-
-    // create a container
-    cont = PDCcont_create("c1", cont_prop);
-    if (cont <= 0)
-        printf("Fail to create container @ line  %d!\n", __LINE__);
-
-    // create an object property
-    obj_prop = PDCprop_create(PDC_OBJ_CREATE, pdc);
-    if (obj_prop <= 0)
-        printf("Fail to create object property @ line  %d!\n", __LINE__);
-
+    // prepare container
+    if (prepare_container(&pdc, &cont_prop, &cont, &obj_prop) < 0) {
+        println("fail to prepare container @ line %d", __LINE__);
+        goto done;
+    }
     // Create a number of objects, add at least one tag to that object
     assign_work_to_rank(my_rank, proc_num, n_obj, &my_obj, &my_obj_s);
-    if (my_rank == 0)
-        printf("I will create %d obj\n", my_obj);
-
-    obj_ids = (pdcid_t *)calloc(my_obj, sizeof(pdcid_t));
-    for (i = 0; i < my_obj; i++) {
-        sprintf(obj_name, "obj%d", my_obj_s + i);
-        obj_ids[i] = PDCobj_create(cont, obj_name, obj_prop);
-        if (obj_ids[i] <= 0)
-            printf("Fail to create object @ line  %d!\n", __LINE__);
+    if (my_rank == 0) {
+        println("I will create %d obj", my_obj);
     }
-
-    if (my_rank == 0)
-        printf("Created %d objects\n", n_obj);
-    fflush(stdout);
-
-    char *attr_name_per_rank = gen_random_strings(1, 8, 26)[0];
-    // Add tags
-    kvtag.name  = attr_name_per_rank;
-    kvtag.value = (void *)&v;
-    kvtag.type  = PDC_INT;
-    kvtag.size  = sizeof(int);
-
-    char key[32];
-    char value[32];
-    char exact_query[48];
+    // creating objects
+    creating_objects(&obj_ids, my_obj, my_obj_s, cont, obj_prop);
+    if (my_rank == 0) {
+        println("Created %d objects", n_obj);
+    }
+    // prepare tags to be added.
+    char *attr_name_per_rank = gen_random_strings(1, 6, 8, 26)[0];
 
     dart_object_ref_type_t ref_type  = REF_PRIMARY_ID;
     dart_hash_algo_t       hash_algo = DART_HASH;
@@ -177,8 +185,12 @@ main(int argc, char *argv[])
     // This is for adding #rounds tags to the objects.
     for (i = 0; i < my_add_tag; i++) {
         for (iter = 0; iter < round; iter++) {
-            v = iter;
-            sprintf(value, "%d", v);
+            char value[32];
+            sprintf(value, "%d", iter);
+            kvtag.name  = attr_name_per_rank;
+            kvtag.value = (void *)value;
+            kvtag.type  = PDC_STRING;
+            kvtag.size  = (strlen(value) + 1) * sizeof(char);
             if (is_using_dart) {
                 if (PDC_Client_insert_obj_ref_into_dart(hash_algo, kvtag.name, value, ref_type,
                                                         (uint64_t)obj_ids[i]) < 0) {
@@ -194,34 +206,46 @@ main(int argc, char *argv[])
         if (my_rank == 0)
             println("Rank %d: Added %d kvtag to the %d th object\n", my_rank, round, i);
     }
-
-#ifdef ENABLE_MPI
-    MPI_Barrier(MPI_COMM_WORLD);
-#endif
-
-    kvtag.name  = attr_name_per_rank;
-    kvtag.value = (void *)&v;
-    kvtag.type  = PDC_INT;
-    kvtag.size  = sizeof(int);
-
 #ifdef ENABLE_MPI
     MPI_Barrier(MPI_COMM_WORLD);
     stime = MPI_Wtime();
 #endif
-
+    perr_t ret_value;
     for (iter = 0; iter < round; iter++) {
-        v = iter;
+        char value[32];
+        sprintf(value, "%ld", iter);
+        kvtag.name  = attr_name_per_rank;
+        kvtag.value = (void *)value;
+        kvtag.type  = PDC_STRING;
+        kvtag.size  = (strlen(value) + 1) * sizeof(char);
+
+        query_gen_input_t  input;
+        query_gen_output_t output;
+        input.base_tag         = &kvtag;
+        input.key_query_type   = query_type;
+        input.value_query_type = query_type;
+        input.affix_len        = 4;
+
+        gen_query_key_value(&input, &output);
+
         if (is_using_dart) {
-            sprintf(value, "%ld", v);
-            sprintf(exact_query, "%s=%s", kvtag.name, value);
-            PDC_Client_search_obj_ref_through_dart_mpi(hash_algo, exact_query, ref_type, &nres, &pdc_ids,
-                                                       MPI_COMM_WORLD);
+            char *query_string = gen_query_str(&output);
+            ret_value          = (comm_type == 0)
+                            ? PDC_Client_search_obj_ref_through_dart(hash_algo, query_string, ref_type, &nres,
+                                                                     &pdc_ids)
+                            : PDC_Client_search_obj_ref_through_dart_mpi(hash_algo, query_string, ref_type,
+                                                                         &nres, &pdc_ids, MPI_COMM_WORLD);
         }
         else {
-            if (PDC_Client_query_kvtag_mpi(&kvtag, &nres, &pdc_ids, MPI_COMM_WORLD) < 0) {
-                printf("fail to query kvtag [%s] with rank %d\n", kvtag.name, my_rank);
-                break;
-            }
+            kvtag.name  = output.key_query;
+            kvtag.value = output.value_query;
+            ret_value   = (comm_type == 0)
+                            ? PDC_Client_query_kvtag(&kvtag, &nres, &pdc_ids)
+                            : PDC_Client_query_kvtag_mpi(&kvtag, &nres, &pdc_ids, MPI_COMM_WORLD);
+        }
+        if (ret_value < 0) {
+            printf("fail to query kvtag [%s] with rank %d\n", kvtag.name, my_rank);
+            break;
         }
     }
 
