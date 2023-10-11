@@ -8,6 +8,19 @@
 #include <inttypes.h>
 #include "pdc_generic.h"
 
+/**
+ * @brief This is a binary data structure designed for bulk data transfer. 
+ *          It is used to transfer a large number of key-value pairs between
+ *        the server and the client. The data structure is designed to be
+ *        serialized and deserialized easily.
+ *        
+ *        This is named as BULKI, because the data structure can be expanded to really bulky binary data.
+ *          Also, BULKI can be splitted as BULK + I, where I stands for index, which indicates that the header 
+ *        field can be served as an index to the data field.
+ *          Plus, BULK I sounds like Buckeye, which is the mascot of The Ohio State University, simply because is 
+ *        was written when the developer served his first academia job at OSU :)
+*/
+
 typedef struct {
     pdc_c_var_type_t pdc_type; /**< Data type of the key */
     uint64_t         size;     /**< Size of the key */
