@@ -397,3 +397,72 @@ Remember, you must include all your bridging function calls inside the following
 Also, to make sure your code with Julia function calls doesn't get compiled when Julia support is not there, you can add your new test to the list of `ENHANCED_PROGRAMS` in `src/tests/CMakeLists.txt`.
 
 For more info on embedded Julia support, please visit: `Embedded Julia https://docs.julialang.org/en/v1/manual/embedding/`_.
+
+
+
+---------------------------------------------
+Github Codespace Support
+---------------------------------------------
+
+Now the PDC project can be built and run in Github Codespace.
+
+When you create a code space, you can find your PDC project in `/workspaces/pdc` directory. 
+And, you can find your PDC project and its dependencies in `/home/project` directory, you will see the same directory structure there as described in our standalone installation guide.  
+
+
+---------------------------------------------
+Docker Support
+---------------------------------------------
+
+Sometimes, you may want to have a development or testing environment to work on PDC. 
+
+We provide docker support for PDC on such purpose. 
+
+To build the docker image, you can run the following command in the root directory of PDC project:
+
+.. code-block:: Bash
+    .docker/run_dev_base.sh
+
+This will mount your PDC project directory to `/workspaces/pdc` directory in the docker container and an initial step will be performed once you attach to the container. 
+The experience will be pretty much similar to the Github Codespace.
+
+------------------------------------------------
+Maintaining Docker Image
+------------------------------------------------
+
+We currently only support to architectures, amd64 and arm64v8. 
+To build the docker image, you can run the following command in the root directory of PDC project:
+
+.. code-block:: Bash
+    .docker/publish_dev_base.sh <docker_registry_namespace>
+
+Once the above is done, you can pick the image build machine with fastest network and run the following
+
+.. code-block:: Bash
+    .docker/publish_dev_base.sh <docker_registry_namespace> 1
+
+This will create a multi-arch image with both amd64 and arm64v8 architectures in your registry under your namespace. 
+
+
+------------------------------------------------------------
+Tracking your memory consumption with each memory allocation
+------------------------------------------------------------
+
+Now, you can use the APIs in `src/commons/utils/pdc_malloc.c` to allocate memory when needed. 
+Using these APIs and macros will allow you to track your memory consumption with each memory allocation.
+You can get the total memory consumption anytime by calling `PDC_get_global_mem_usage()`.
+
+Also, the root CMakeLists.txt file will automatically detect if HAVE_MALLOC_USABLE_SIZE is available.
+If so, the memory consumption will be more accurate (summation of both allocation and freeing). Otherwise, it will be less accurate but still usable (only measure the total memory ever allocated).
+
+
+------------------------------------------------------------
+DART Suffix Tree Mode
+------------------------------------------------------------
+
+In DART, to support efficient infix search, we can enable the suffix tree mode, 
+where suffix search becomes an exact search and infix search becomes a prefix search, 
+at the cost of indexing every possible suffix of indexed keywords. 
+
+To enable the suffix tree mode, you can turn on/off this switch in CMakeLists.txt:
+`PDC_DART_SUFFIX_TREE_MODE`

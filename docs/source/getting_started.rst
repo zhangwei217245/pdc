@@ -218,6 +218,20 @@ Then you can compile your PDC project with Julia support.
 
 Now, see Developer Notes to know how you can add your own Julia functions to enhance your test cases in PDC. 
 
+
+Build PDC in a Docker Container
+---------------------------------------------------
+Simply run the following command from the project root directory to build PDC in a Docker container:
+.. code-block:: Bash
+	.docker/run_dev_base.sh
+
+
+Build PDC in Github Codespace
+---------------------------------------------------
+Simply start a Github Codespace from the targeting branch of your PDC project, and enjoy. 
+For more information on how to create Github Codespace, please refer to `Github Codespace Documentation <https://docs.github.com/en/codespaces/developing-in-codespaces/creating-a-codespace>`_
+
+
 ---------------------------
 Running PDC
 ---------------------------
