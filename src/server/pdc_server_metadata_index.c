@@ -207,7 +207,7 @@ PDC_Server_dart_init()
 // #define PDC_DART_SFX_TREE
 
 perr_t
-create_prefix_index_for_attr_value(void **index, unsigned char *attr_value, void *data)
+create_prefix_index_for_attr_value(void **index, unsigned char *attr_value, int8_t attr_type, void *data)
 {
     perr_t ret = SUCCEED;
     if (*index == NULL) {
@@ -235,7 +235,7 @@ create_prefix_index_for_attr_value(void **index, unsigned char *attr_value, void
 }
 
 art_tree *
-create_index_for_attr_name(char *attr_name, char *attr_value, void *data)
+create_index_for_attr_name(char *attr_name, char *attr_value, int8_t attr_type, void *data)
 {
 
     int                     len          = strlen(attr_name);
@@ -295,7 +295,7 @@ create_index_for_attr_name(char *attr_name, char *attr_value, void *data)
 }
 
 perr_t
-metadata_index_create(char *attr_key, char *attr_value, uint64_t obj_locator, int8_t index_type)
+metadata_index_create(char *attr_key, char *attr_value, int8_t attr_type, uint64_t obj_locator, int8_t index_type)
 {
     perr_t      ret_value = FAIL;
     stopwatch_t timer;
@@ -312,7 +312,7 @@ metadata_index_create(char *attr_key, char *attr_value, uint64_t obj_locator, in
     //     create_hash_table_for_keyword(attr_key, attr_value, 1, (void *)data);
     // }
     // else if (index_type == DART_HASH) {
-    create_index_for_attr_name(attr_key, attr_value, (void *)data);
+    create_index_for_attr_name(attr_key, attr_value, attr_type, (void *)data);
     // }
     timer_pause(&timer);
     // if (DART_SERVER_DEBUG) {
@@ -362,7 +362,7 @@ delete_prefix_index_for_attr_value(void **index, unsigned char *attr_value, void
 }
 
 void
-delete_index_for_attr_name(char *attr_name, char *attr_value, void *data)
+delete_index_for_attr_name(char *attr_name, char *attr_value, int8_t attr_type, void *data)
 {
     int                     len          = strlen(attr_name);
     key_index_leaf_content *leaf_content = NULL;
@@ -411,7 +411,7 @@ delete_index_for_attr_name(char *attr_name, char *attr_value, void *data)
 }
 
 perr_t
-metadata_index_delete(char *attr_key, char *attr_value, uint64_t obj_locator, int8_t index_type)
+metadata_index_delete(char *attr_key, char *attr_value, int8_t attr_type, uint64_t obj_locator, int8_t index_type)
 {
     perr_t      ret_value = FAIL;
     stopwatch_t timer;
@@ -426,7 +426,7 @@ metadata_index_delete(char *attr_key, char *attr_value, uint64_t obj_locator, in
     //     delete_hash_table_for_keyword(attr_key, 1, (void *)obj_locator);
     // }
     // else if (index_type == DART_HASH) {
-    delete_index_for_attr_name(attr_key, attr_value, (void *)data);
+    delete_index_for_attr_name(attr_key, attr_value, attr_type, (void *)data);
     // }
 
     timer_pause(&timer);
@@ -698,6 +698,7 @@ PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t *in, dart_perfor
     dart_hash_algo_t       hash_algo = in->hash_algo;
     char *                 attr_key  = (char *)in->attr_key;
     char *                 attr_val  = (char *)in->attr_val;
+    int8_t                 attr_type = in->attr_type;
     dart_object_ref_type_t ref_type  = in->obj_ref_type;
 
     uint64_t obj_locator = in->obj_primary_ref;
@@ -713,10 +714,10 @@ PDC_Server_dart_perform_one_server(dart_perform_one_server_in_t *in, dart_perfor
     out->has_bulk = 0;
     // printf("Respond to: in->op_type=%d\n", in->op_type );
     if (op_type == OP_INSERT) {
-        metadata_index_create(attr_key, attr_val, obj_locator, hash_algo);
+        metadata_index_create(attr_key, attr_val, attr_type, obj_locator, hash_algo);
     }
     else if (op_type == OP_DELETE) {
-        metadata_index_delete(attr_key, attr_val, obj_locator, hash_algo);
+        metadata_index_delete(attr_key, attr_val, attr_type, obj_locator, hash_algo);
     }
     else {
         char *query  = (char *)in->attr_key;
