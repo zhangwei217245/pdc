@@ -5,6 +5,8 @@
 #ifndef PDC_STRING_UTILS_H
 #define PDC_STRING_UTILS_H
 
+#include "pdc_base_stdlib.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

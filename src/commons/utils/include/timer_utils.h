@@ -20,6 +20,8 @@
 #include <stdbool.h>  /* bool */
 #include <stdint.h>   /* int64_t */
 
+typedef int64_t stw_nanosec_t;
+
 typedef struct stopwatch_t {
     int64_t start_mark; /* Timer start point */
     int64_t pause_mark; /* In case we pause the timer */
