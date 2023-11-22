@@ -1,5 +1,7 @@
 /**
+ *
  * @file rbtree.h
+ *
  *
  * @brief Red/Black Tree
  *
@@ -42,8 +44,7 @@ typedef void (*rbt_free_value_callback_t)(void *v);
  *                      is removed or overwritten
  * @return              A valid and initialized red/black tree (empty)
  */
-rbt_t *rbt_create(libhl_cmp_callback_t cmp_keys_cb,
-                        rbt_free_value_callback_t free_value_cb);
+rbt_t *rbt_create(libhl_cmp_callback_t cmp_keys_cb, rbt_free_value_callback_t free_value_cb);
 
 /**
  * @brief Release all the resources used by a red/black tree
@@ -62,7 +63,6 @@ void rbt_destroy(rbt_t *rbt);
  *         -1 otherwise
  */
 int rbt_add(rbt_t *rbt, void *key, size_t klen, void *value);
-
 
 /**
  * @brief Remove a node from the tree
@@ -91,10 +91,10 @@ int rbt_remove(rbt_t *rbt, void *key, size_t klen, void **value);
 int rbt_find(rbt_t *rbt, void *key, size_t klen, void **value);
 
 typedef enum {
-    RBT_WALK_STOP = 0,
-    RBT_WALK_CONTINUE = 1,
+    RBT_WALK_STOP                = 0,
+    RBT_WALK_CONTINUE            = 1,
     RBT_WALK_DELETE_AND_CONTINUE = -1,
-    RBT_WALK_DELETE_AND_STOP = -2
+    RBT_WALK_DELETE_AND_STOP     = -2
 } rbt_walk_return_code_t;
 
 /**
@@ -113,10 +113,7 @@ typedef enum {
  *   RBT_WALK_DELETE_AND_STOP if the current node should be removed and the
  *                            walker should stop
  */
-typedef rbt_walk_return_code_t (*rbt_walk_callback)(rbt_t *rbt,
-                                                    void *key,
-                                                    size_t klen,
-                                                    void *value,
+typedef rbt_walk_return_code_t (*rbt_walk_callback)(rbt_t *rbt, void *key, size_t klen, void *value,
                                                     void *priv);
 
 /**
@@ -141,9 +138,10 @@ int rbt_walk(rbt_t *rbt, rbt_walk_callback cb, void *priv);
 int rbt_walk_sorted(rbt_t *rbt, rbt_walk_callback cb, void *priv);
 
 /**
- * @brief Walk the node with its key within the given range in the tree and call the callback for each visited node
+ * @brief Walk the node with its key within the given range in the tree and call the callback for each visited
+ * node
  * @param rbt  A valid pointer to an initialized rbt_t structure
- * @param begin_key key to begin with 
+ * @param begin_key key to begin with
  * @param bgk_size size of the key to  begin with
  * @param end_key key to end with
  * @param edk_size size of the key to end with
@@ -151,16 +149,16 @@ int rbt_walk_sorted(rbt_t *rbt, rbt_walk_callback cb, void *priv);
  * @param priv A pointer to private data provided passed as argument to the
  *             callback when invoked.
  * @return The number of visited nodes
- * 
+ *
  */
-int rbt_range_walk(rbt_t *rbt, void *begin_key, size_t bgk_size,
-    void *end_key, size_t edk_size, rbt_walk_callback cb, void *priv);
-
+int rbt_range_walk(rbt_t *rbt, void *begin_key, size_t bgk_size, void *end_key, size_t edk_size,
+                   rbt_walk_callback cb, void *priv);
 
 /**
- * @brief Walk the node with its key within the given range in the tree in ascending order and call the callback for each visited node
+ * @brief Walk the node with its key within the given range in the tree in ascending order and call the
+ * callback for each visited node
  * @param rbt  A valid pointer to an initialized rbt_t structure
- * @param begin_key key to begin with 
+ * @param begin_key key to begin with
  * @param bgk_size size of the key to  begin with
  * @param end_key key to end with
  * @param edk_size size of the key to end with
@@ -169,17 +167,15 @@ int rbt_range_walk(rbt_t *rbt, void *begin_key, size_t bgk_size,
  *             callback when invoked.
  * @return The number of visited nodes
  */
-int rbt_range_walk_sorted(rbt_t *rbt, void *begin_key, size_t bgk_size,
-    void *end_key, size_t edk_size, rbt_walk_callback cb, void *priv);
-
+int rbt_range_walk_sorted(rbt_t *rbt, void *begin_key, size_t bgk_size, void *end_key, size_t edk_size,
+                          rbt_walk_callback cb, void *priv);
 
 /**
  * @brief Return the size of the tree, which is the number of nodes in the tree
  * @param rbt  A valid pointer to an initialized rbt_t structure
- * @return The number of nodes in the tree. 
+ * @return The number of nodes in the tree.
  */
 uint64_t rbt_size(rbt_t *rbt);
-
 
 perf_info_t *get_perf_info_rbtree(rbt_t *index_root);
 

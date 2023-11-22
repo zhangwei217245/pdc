@@ -10,10 +10,20 @@ extern "C" {
 #include <string.h>
 #include <stdio.h>
 
-typedef enum  {
-    INT, LONG, INT16, INT32, INT64, UINT16, UINT32, UINT64, SIZE_T, 
-    FLOAT, DOUBLE, STRING
-}DATA_TYPE;
+typedef enum {
+    INT,
+    LONG,
+    INT16,
+    INT32,
+    INT64,
+    UINT16,
+    UINT32,
+    UINT64,
+    SIZE_T,
+    FLOAT,
+    DOUBLE,
+    STRING
+} DATA_TYPE;
 
 /**
  * @brief Callback that, if provided, will be used to compare node keys.
@@ -37,72 +47,77 @@ typedef enum  {
  *       by the library).
  *
  */
-typedef int (*libhl_cmp_callback_t)(void *k1,
-                                    size_t k1size,
-                                    void *k2,
-                                    size_t k2size);
+typedef int (*libhl_cmp_callback_t)(void *k1, size_t k1size, void *k2, size_t k2size);
 
+#define LIBHL_CAST_KEYS(_type, _k1)                                                                          \
+    {                                                                                                        \
+        _type _k1i = *((_type *)_k1);                                                                        \
+        int   rst  = (int)_k1i;                                                                              \
+        return rst >= 0 ? rst : -rst;                                                                        \
+    }
 
-#define LIBHL_CAST_KEYS(_type, _k1) {\
-    _type _k1i = *((_type *)_k1);\
-    int rst = (int)_k1i;\
-    return rst >=0?rst:-rst;\
-}
+#define LIBHL_CMP_KEYS_TYPE(_type, _k1, _k1s, _k2, _k2s)                                                     \
+    {                                                                                                        \
+        if (_k1s < sizeof(_type) || _k2s < sizeof(_type) || _k1s != _k2s)                                    \
+            return _k1s - _k2s;                                                                              \
+        _type _k1i = *((_type *)_k1);                                                                        \
+        _type _k2i = *((_type *)_k2);                                                                        \
+        return _k1i - _k2i;                                                                                  \
+    }
 
-#define LIBHL_CMP_KEYS_TYPE(_type, _k1, _k1s, _k2, _k2s) \
-{ \
-    if (_k1s < sizeof(_type) || _k2s < sizeof(_type) || _k1s != _k2s) \
-        return _k1s - _k2s; \
-    _type _k1i = *((_type *)_k1); \
-    _type _k2i = *((_type *)_k2); \
-    return _k1i - _k2i; \
-}
-
-static int 
-libhl_cast_any_to_int(void *k1, size_t k1size, void *k2, size_t k2size){
+static int
+libhl_cast_any_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
+{
     int rst = *(int *)k1;
-    return rst >=0 ? rst: -rst;
+    return rst >= 0 ? rst : -rst;
 }
 
-static int 
-libhl_cast_int_to_int(void *k1, size_t k1size, void *k2, size_t k2size){
+static int
+libhl_cast_int_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
+{
     LIBHL_CAST_KEYS(int, k1);
 }
 
-static int 
-libhl_cast_long_to_int(void *k1, size_t k1size, void *k2, size_t k2size){
+static int
+libhl_cast_long_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
+{
     LIBHL_CAST_KEYS(long, k1);
 }
 
-static int 
-libhl_cast_int16_to_int(void *k1, size_t k1size, void *k2, size_t k2size){
+static int
+libhl_cast_int16_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
+{
     LIBHL_CAST_KEYS(int16_t, k1);
 }
 
-static int 
-libhl_cast_int32_to_int(void *k1, size_t k1size, void *k2, size_t k2size){
+static int
+libhl_cast_int32_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
+{
     LIBHL_CAST_KEYS(int32_t, k1);
 }
 
-static int 
-libhl_cast_int64_to_int(void *k1, size_t k1size, void *k2, size_t k2size){
+static int
+libhl_cast_int64_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
+{
     LIBHL_CAST_KEYS(int64_t, k1);
 }
 
-
-static int 
-libhl_cast_float_to_int(void *k1, size_t k1size, void *k2, size_t k2size){
+static int
+libhl_cast_float_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
+{
     LIBHL_CAST_KEYS(float, k1);
 }
 
-static int 
-libhl_cast_double_to_int(void *k1, size_t k1size, void *k2, size_t k2size){
+static int
+libhl_cast_double_to_int(void *k1, size_t k1size, void *k2, size_t k2size)
+{
     LIBHL_CAST_KEYS(double, k1);
 }
 
 static int
-libhl_cmp_keys_string(void *k1, size_t k1size, void *k2, size_t k2size){
-    return strcmp((const char*)k1, (const char*)k2);
+libhl_cmp_keys_string(void *k1, size_t k1size, void *k2, size_t k2size)
+{
+    return strcmp((const char *)k1, (const char *)k2);
 }
 
 /**
@@ -113,7 +128,6 @@ libhl_cmp_keys_int(void *k1, size_t k1size, void *k2, size_t k2size)
 {
     LIBHL_CMP_KEYS_TYPE(int, k1, k1size, k2, k2size);
 }
-
 
 /**
  * @brief long signed integers comparator
@@ -136,8 +150,8 @@ libhl_cmp_keys_int16(void *k1, size_t k1size, void *k2, size_t k2size)
 /**
  * @brief 32bit signed integers comparator
  */
-static int libhl_cmp_keys_int32(void *k1, size_t k1size,
-                                        void *k2, size_t k2size)
+static int
+libhl_cmp_keys_int32(void *k1, size_t k1size, void *k2, size_t k2size)
 {
     LIBHL_CMP_KEYS_TYPE(int32_t, k1, k1size, k2, k2size);
 }
@@ -145,8 +159,8 @@ static int libhl_cmp_keys_int32(void *k1, size_t k1size,
 /**
  * @brief 64bit signed integers comparator
  */
-static int libhl_cmp_keys_int64(void *k1, size_t k1size,
-                                        void *k2, size_t k2size)
+static int
+libhl_cmp_keys_int64(void *k1, size_t k1size, void *k2, size_t k2size)
 {
     LIBHL_CMP_KEYS_TYPE(int64_t, k1, k1size, k2, k2size);
 }
@@ -155,8 +169,7 @@ static int libhl_cmp_keys_int64(void *k1, size_t k1size,
  * @brief 16bit unsigned integers comparator
  */
 static int
-libhl_cmp_keys_uint16(void *k1, size_t k1size,
-                       void *k2, size_t k2size)
+libhl_cmp_keys_uint16(void *k1, size_t k1size, void *k2, size_t k2size)
 {
     LIBHL_CMP_KEYS_TYPE(uint16_t, k1, k1size, k2, k2size);
 }
@@ -164,8 +177,8 @@ libhl_cmp_keys_uint16(void *k1, size_t k1size,
 /**
  * @brief 32bit unsigned integers comparator
  */
-static int libhl_cmp_keys_uint32(void *k1, size_t k1size,
-                                         void *k2, size_t k2size)
+static int
+libhl_cmp_keys_uint32(void *k1, size_t k1size, void *k2, size_t k2size)
 {
     LIBHL_CMP_KEYS_TYPE(uint32_t, k1, k1size, k2, k2size);
 }
@@ -173,8 +186,8 @@ static int libhl_cmp_keys_uint32(void *k1, size_t k1size,
 /**
  * @brief 64bit unsigned integers comparator
  */
-static int libhl_cmp_keys_uint64(void *k1, size_t k1size,
-                                         void *k2, size_t k2size)
+static int
+libhl_cmp_keys_uint64(void *k1, size_t k1size, void *k2, size_t k2size)
 {
     LIBHL_CMP_KEYS_TYPE(uint64_t, k1, k1size, k2, k2size);
 }
@@ -182,8 +195,8 @@ static int libhl_cmp_keys_uint64(void *k1, size_t k1size,
 /**
  * @brief float comparator
  */
-static int libhl_cmp_keys_float(void *k1, size_t k1size,
-                                        void *k2, size_t k2size)
+static int
+libhl_cmp_keys_float(void *k1, size_t k1size, void *k2, size_t k2size)
 {
     LIBHL_CMP_KEYS_TYPE(float, k1, k1size, k2, k2size);
 }
@@ -191,63 +204,61 @@ static int libhl_cmp_keys_float(void *k1, size_t k1size,
 /**
  * @brief double comparator
  */
-static int libhl_cmp_keys_double(void *k1, size_t k1size,
-                                         void *k2, size_t k2size)
+static int
+libhl_cmp_keys_double(void *k1, size_t k1size, void *k2, size_t k2size)
 {
     LIBHL_CMP_KEYS_TYPE(double, k1, k1size, k2, k2size);
 }
 
-#define LIBHL_CHOOSE_CMP_CB(DT) \
-    libhl_cmp_callback_t cmp_cb;\
-    libhl_cmp_callback_t locate_cb;\
-    switch (DT) \
-    { \
-    case INT:\
-        cmp_cb = libhl_cmp_keys_int;\
-        locate_cb = libhl_cast_int_to_int;\
-        break;\
-    case LONG:\
-        cmp_cb = libhl_cmp_keys_long;\
-        locate_cb = libhl_cast_long_to_int;\
-        break;\
-    case FLOAT:\
-        cmp_cb = libhl_cmp_keys_float;\
-        locate_cb = libhl_cast_float_to_int;\
-        break;\
-    case DOUBLE:\
-        cmp_cb = libhl_cmp_keys_double;\
-        locate_cb = libhl_cast_double_to_int;\
-        break;\
-    case INT16:\
-        cmp_cb = libhl_cmp_keys_int16;\
-        locate_cb = libhl_cast_int16_to_int;\
-        break;\
-    case INT32:\
-        cmp_cb = libhl_cmp_keys_int32;\
-        locate_cb = libhl_cast_int32_to_int;\
-        break;\
-    case INT64:\
-        cmp_cb = libhl_cmp_keys_int64;\
-        locate_cb = libhl_cast_int64_to_int;\
-        break;\
-    case UINT16:\
-        cmp_cb = libhl_cmp_keys_uint16;\
-        locate_cb = libhl_cast_any_to_int;\
-        break;\
-    case UINT32:\
-        cmp_cb = libhl_cmp_keys_uint32;\
-        locate_cb = libhl_cast_any_to_int;\
-        break;\
-    case UINT64:\
-        cmp_cb = libhl_cmp_keys_uint64;\
-        locate_cb = libhl_cast_any_to_int;\
-        break;\
-    default:\
-        cmp_cb = NULL;\
-        locate_cb = NULL;\
-        break;\
-    }\
-
+#define LIBHL_CHOOSE_CMP_CB(DT)                                                                              \
+    libhl_cmp_callback_t cmp_cb;                                                                             \
+    libhl_cmp_callback_t locate_cb;                                                                          \
+    switch (DT) {                                                                                            \
+        case INT:                                                                                            \
+            cmp_cb    = libhl_cmp_keys_int;                                                                  \
+            locate_cb = libhl_cast_int_to_int;                                                               \
+            break;                                                                                           \
+        case LONG:                                                                                           \
+            cmp_cb    = libhl_cmp_keys_long;                                                                 \
+            locate_cb = libhl_cast_long_to_int;                                                              \
+            break;                                                                                           \
+        case FLOAT:                                                                                          \
+            cmp_cb    = libhl_cmp_keys_float;                                                                \
+            locate_cb = libhl_cast_float_to_int;                                                             \
+            break;                                                                                           \
+        case DOUBLE:                                                                                         \
+            cmp_cb    = libhl_cmp_keys_double;                                                               \
+            locate_cb = libhl_cast_double_to_int;                                                            \
+            break;                                                                                           \
+        case INT16:                                                                                          \
+            cmp_cb    = libhl_cmp_keys_int16;                                                                \
+            locate_cb = libhl_cast_int16_to_int;                                                             \
+            break;                                                                                           \
+        case INT32:                                                                                          \
+            cmp_cb    = libhl_cmp_keys_int32;                                                                \
+            locate_cb = libhl_cast_int32_to_int;                                                             \
+            break;                                                                                           \
+        case INT64:                                                                                          \
+            cmp_cb    = libhl_cmp_keys_int64;                                                                \
+            locate_cb = libhl_cast_int64_to_int;                                                             \
+            break;                                                                                           \
+        case UINT16:                                                                                         \
+            cmp_cb    = libhl_cmp_keys_uint16;                                                               \
+            locate_cb = libhl_cast_any_to_int;                                                               \
+            break;                                                                                           \
+        case UINT32:                                                                                         \
+            cmp_cb    = libhl_cmp_keys_uint32;                                                               \
+            locate_cb = libhl_cast_any_to_int;                                                               \
+            break;                                                                                           \
+        case UINT64:                                                                                         \
+            cmp_cb    = libhl_cmp_keys_uint64;                                                               \
+            locate_cb = libhl_cast_any_to_int;                                                               \
+            break;                                                                                           \
+        default:                                                                                             \
+            cmp_cb    = NULL;                                                                                \
+            locate_cb = NULL;                                                                                \
+            break;                                                                                           \
+    }
 
 #ifdef __cplusplus
 }

@@ -65,6 +65,15 @@ void *PDC_realloc(void *ptr, size_t size);
 void *PDC_realloc_addsize(void *ptr, size_t size, size_t *mem_usage_ptr);
 
 /**
+ * free allocated memory and subtract size from specified memory size pointer
+ *
+ * \param mem [IN]              Starting address of memory
+ * \param size [IN]             Size of the struct to be freed
+ * \param mem_usage_ptr [IN]    Pointer to the memory usage variable
+ */
+void *PDC_free_subsize(void *mem, size_t size, size_t *mem_usage_ptr);
+
+/**
  * free allocated memory
  *
  * \param mem [IN]              Starting address of memory
