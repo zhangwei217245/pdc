@@ -8,7 +8,7 @@
 
 #include "pdc_hl_linklist.h"
 #include "pdc_hl_atomic_defs.h"
-#include "mem_perf.h"
+#include "pdc_mem_perf.h"
 
 size_t mem_usage_by_all_linkedlist;
 
@@ -46,23 +46,23 @@ struct _slice_s {
  ********************************************************************/
 
 /* Entry creation and destruction routines */
-static inline list_entry_t *create_entry();
-static inline void          destroy_entry(list_entry_t *entry);
+list_entry_t *create_entry();
+void          destroy_entry(list_entry_t *entry);
 
 /* List and list_entry_t manipulation routines */
-static inline list_entry_t *pop_entry(linked_list_t *list);
-static inline int           push_entry(linked_list_t *list, list_entry_t *entry);
-static inline int           unshift_entry(linked_list_t *list, list_entry_t *entry);
-static inline list_entry_t *shift_entry(linked_list_t *list);
-static inline int           insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos);
-static inline list_entry_t *pick_entry(linked_list_t *list, size_t pos);
-static inline list_entry_t *fetch_entry(linked_list_t *list, size_t pos);
+list_entry_t *pop_entry(linked_list_t *list);
+int           push_entry(linked_list_t *list, list_entry_t *entry);
+int           unshift_entry(linked_list_t *list, list_entry_t *entry);
+list_entry_t *shift_entry(linked_list_t *list);
+int           insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos);
+list_entry_t *pick_entry(linked_list_t *list, size_t pos);
+list_entry_t *fetch_entry(linked_list_t *list, size_t pos);
 // list_entry_t *SelectEntry(linked_list_t *list, size_t pos);
-static inline list_entry_t *remove_entry(linked_list_t *list, size_t pos);
-static inline long          get_entry_position(list_entry_t *entry);
-static inline int           move_entry(linked_list_t *list, size_t srcPos, size_t dstPos);
-static inline list_entry_t *subst_entry(linked_list_t *list, size_t pos, list_entry_t *entry);
-static inline int           swap_entries(linked_list_t *list, size_t pos1, size_t pos2);
+list_entry_t *remove_entry(linked_list_t *list, size_t pos);
+long          get_entry_position(list_entry_t *entry);
+int           move_entry(linked_list_t *list, size_t srcPos, size_t dstPos);
+list_entry_t *subst_entry(linked_list_t *list, size_t pos, list_entry_t *entry);
+int           swap_entries(linked_list_t *list, size_t pos1, size_t pos2);
 
 /*
  * Create a new linked_list_t. Allocates resources and returns
@@ -194,7 +194,7 @@ list_unlock(linked_list_t *list __attribute__((unused)))
  * Create a new list_entry_t structure. Allocates resources and returns
  * a pointer to the just created list_entry_t opaque structure
  */
-static inline list_entry_t *
+list_entry_t *
 create_entry()
 {
     list_entry_t *new_entry =
@@ -212,7 +212,7 @@ create_entry()
  * If the entry is linked in a list this routine will also unlink correctly
  * the entry from the list.
  */
-static inline void
+void
 destroy_entry(list_entry_t *entry)
 {
     long pos;
@@ -231,7 +231,7 @@ destroy_entry(list_entry_t *entry)
  * Pops a list_entry_t from the end of the list (or bottom of the stack
  * if you are using the list as a stack)
  */
-static inline list_entry_t *
+list_entry_t *
 pop_entry(linked_list_t *list)
 {
     list_entry_t *entry;
@@ -261,7 +261,7 @@ pop_entry(linked_list_t *list)
 /*
  * Pushs a list_entry_t at the end of a list
  */
-static inline int
+int
 push_entry(linked_list_t *list, list_entry_t *entry)
 {
     list_entry_t *p;
@@ -288,7 +288,7 @@ push_entry(linked_list_t *list, list_entry_t *entry)
  * Retreive a list_entry_t from the beginning of a list (or top of the stack
  * if you are using the list as a stack)
  */
-static inline list_entry_t *
+list_entry_t *
 shift_entry(linked_list_t *list)
 {
     list_entry_t *entry;
@@ -318,7 +318,7 @@ shift_entry(linked_list_t *list)
 /*
  * Insert a list_entry_t at the beginning of a list (or at the top if the stack)
  */
-static inline int
+int
 unshift_entry(linked_list_t *list, list_entry_t *entry)
 {
     list_entry_t *p;
@@ -346,7 +346,7 @@ unshift_entry(linked_list_t *list, list_entry_t *entry)
 /*
  * Instert an entry at a specified position in a linked_list_t
  */
-static inline int
+int
 insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos)
 {
     list_entry_t *prev, *next;
@@ -395,7 +395,7 @@ insert_entry(linked_list_t *list, list_entry_t *entry, size_t pos)
 /*
  * Retreive the list_entry_t at pos in a linked_list_t without removing it from the list
  */
-static inline list_entry_t *
+list_entry_t *
 pick_entry(linked_list_t *list, size_t pos)
 {
     unsigned int  i;
@@ -452,7 +452,7 @@ pick_entry(linked_list_t *list, size_t pos)
  * XXX - no locking here because this routine is just an accessor to other routines
  * Caller MUST destroy the returned entry trough destroy_entry() call
  */
-static inline list_entry_t *
+list_entry_t *
 fetch_entry(linked_list_t *list, size_t pos)
 {
     list_entry_t *entry = NULL;
@@ -465,7 +465,7 @@ fetch_entry(linked_list_t *list, size_t pos)
     return entry;
 }
 
-static inline int
+int
 move_entry(linked_list_t *list, size_t srcPos, size_t dstPos)
 {
     list_entry_t *e;
@@ -485,7 +485,7 @@ move_entry(linked_list_t *list, size_t srcPos, size_t dstPos)
 }
 
 /* XXX - still dangerous ... */
-static inline int
+int
 swap_entries(linked_list_t *list, size_t pos1, size_t pos2)
 {
     list_entry_t *e1;
@@ -510,7 +510,7 @@ swap_entries(linked_list_t *list, size_t pos1, size_t pos2)
 }
 
 /* return old entry at pos */
-static inline list_entry_t *
+list_entry_t *
 subst_entry(linked_list_t *list, size_t pos, list_entry_t *entry)
 {
     list_entry_t *old;
@@ -530,7 +530,7 @@ subst_entry(linked_list_t *list, size_t pos, list_entry_t *entry)
 }
 
 /* XXX - POSSIBLE RACE CONDITION BETWEEN pick_entry and the actual removal */
-static inline list_entry_t *
+list_entry_t *
 remove_entry(linked_list_t *list, size_t pos)
 {
     list_entry_t *next, *prev;
@@ -991,7 +991,7 @@ list_get_tagged_values(linked_list_t *list, char *tag, linked_list_t *values)
     return ret;
 }
 
-static inline void
+void
 swap_entry_node_val(list_entry_t *p1, list_entry_t *p2)
 {
     if (!p1 || !p2)
@@ -1002,7 +1002,7 @@ swap_entry_node_val(list_entry_t *p1, list_entry_t *p2)
     p2->value = tmp;
 }
 
-static inline void
+void
 list_quick_sort(list_entry_t *head, list_entry_t *tail, list_entry_t *pivot, int length,
                 list_comparator_callback_t comparator)
 {

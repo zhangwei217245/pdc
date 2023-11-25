@@ -230,6 +230,7 @@ if(NOT CMAKE_C_FLAGS AND CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_C_FLAGS "-Wall -Wextra -Winline -Wcast-qual -std=gnu99 -Wshadow -fcommon" CACHE STRING "Flags used by the compiler during all build types." FORCE)
 endif()
 
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -finline-limit=1000 --param large-function-growth=5000")
 #-----------------------------------------------------------------------------
 # Targets built within this project are exported at Install time for use
 # by other projects.

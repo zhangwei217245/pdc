@@ -1,6 +1,6 @@
 #include "in_mem_index.h"
+#include "pdc_mem_perf.h"
 #include <string.h>
-#include <pthread.h>
 
 index_anchor_t *root_index_anchor = NULL;
 

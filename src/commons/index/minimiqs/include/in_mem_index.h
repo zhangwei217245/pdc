@@ -1,11 +1,13 @@
 #ifndef MIQS_IN_MEM_INDEX
 #define MIQS_IN_MEM_INDEX
 
+#include "pdc_mem_perf.h"
 #include "art.h"
 #include "string_utils.h"
 #include "pdc_hl_linklist.h"
 #include "pdc_hl_rbtree.h"
 #include "on_disk_index.h"
+#include <pthread.h>
 
 // For index creation,
 // This is the opdata that will be passed to on_obj and on_attr functions.

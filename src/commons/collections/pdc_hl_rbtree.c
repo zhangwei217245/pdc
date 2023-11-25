@@ -63,7 +63,7 @@ rbt_create(libhl_cmp_callback_t cmp_keys_cb, rbt_free_value_callback_t free_valu
     return rbt;
 }
 
-static inline void
+void
 rbt_destroy_internal(rbt_node_t *node, rbt_free_value_callback_t free_value_cb)
 {
     if (!node)

@@ -1,17 +1,19 @@
 #ifndef MIQS_ON_DISK_INDEX
 #define MIQS_ON_DISK_INDEX
 #include "bin_file_ops.h"
-#include "libhl/linklist.h"
-#include "libhl/rbtree.h"
-#include "art/art.h"
-#include "../utils/fs/fs_ops.h"
-#include "../utils/string_utils.h"
-#include "../metadata/miqs_metadata.h"
+#include "pdc_hl_linklist.h"
+#include "pdc_hl_rbtree.h"
+#include "art.h"
+#include "pdc_fs_ops.h"
+#include "string_utils.h"
+#include "miqs_metadata.h"
 #include <sys/stat.h>
 #include <unistd.h>
 // #include "in_mem_index.h"
 
 // #define MIQS_INDEX_CONCURRENT_LEVEL 1
+
+// typedef enum miqs_attr_type {MIQS_AT_UNKNOWN=0, MIQS_AT_INTEGER = 1, MIQS_AT_FLOAT = 2, MIQS_AT_STRING = 3} miqs_attr_type_t;
 
 typedef struct {
     int is_numeric;

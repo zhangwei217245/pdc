@@ -21,7 +21,7 @@ extern "C" {
 
 #include <stdint.h>
 #include "pdc_hl_comparators.h"
-#include "pdc_malloc.h"
+#include "pdc_mem_perf.h"
 
 /**
  * @brief Opaque structure representing the tree

@@ -55,6 +55,12 @@ void timer_pause(stopwatch_t *t);
  */
 void timer_unpause(stopwatch_t *t);
 
+/** Returns the time difference in nanoseconds
+ *
+ * @note (1/1000000000 seconds)
+ */
+stw_nanosec_t timer_delta_ns(stopwatch_t *t);
+
 /** Returns the time difference in microseconds
  *
  * @note (1/1000000 seconds)

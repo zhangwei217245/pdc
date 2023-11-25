@@ -1,25 +1,25 @@
-#include "fs_ops.h"
+#include "pdc_fs_ops.h"
 
 int
-pdc_desc_cmp(int v, int end)
+pdc_fs_desc_cmp(int v, int end)
 {
     return v >= end;
 }
 
 int
-pdc_asc_cmp(int v, int end)
+pdc_fs_asc_cmp(int v, int end)
 {
     return v <= end;
 }
 
 int
-pdc_incr(int a)
+pdc_fs_incr(int a)
 {
     return a + 1;
 }
 
 int
-pdc_decr(int a)
+pdc_fs_decr(int a)
 {
     return a - 1;
 }
@@ -51,14 +51,14 @@ pdc_walk_fs_dir(const char *dir_path, int (*filter)(const struct dirent *),
         if (sd == DESC) {
             v      = n - 1;
             end    = 0;
-            cmp_nl = desc_cmp;
-            v_act  = decr;
+            cmp_nl = pdc_fs_desc_cmp;
+            v_act  = pdc_fs_decr;
         }
         else {
             v      = 0;
             end    = n - 1;
-            cmp_nl = asc_cmp;
-            v_act  = incr;
+            cmp_nl = pdc_fs_asc_cmp;
+            v_act  = pdc_fs_incr;
         }
         while (cmp_nl(v, end) && (topk > 0 ? count < topk : 1)) {
             struct dirent *entry = namelist[v];

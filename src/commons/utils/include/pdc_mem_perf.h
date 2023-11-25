@@ -40,17 +40,17 @@ typedef struct perf_info {
  * Memory allocation with counter.
  * allocate 'size' bytes of memory and return a generic pointer.
  */
-void *mem_perf_ctr_malloc(size_t size, size_t *reg);
+void *ctr_malloc(size_t size, size_t *reg);
 
 /**
  * Memory allocation with counter. (Clear allocation)
  * allocate nitems * size bytes of memory and return a generic pointer.
  */
-void *mem_perf_ctr_calloc(size_t nitems, size_t size, size_t *reg);
+void *ctr_calloc(size_t nitems, size_t size, size_t *reg);
 
 /**
  * Calling realloc and record it size.
  */
-void *mem_perf_ctr_realloc(void *ptr, size_t new_size, size_t *reg);
+void *ctr_realloc(void *ptr, size_t new_size, size_t *reg);
 
 #endif // END MIQS_MEM_PERF_H
