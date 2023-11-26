@@ -48,6 +48,8 @@
 #define SET_LEAF(x) ((void *)((uintptr_t)x | 1))
 #define LEAF_RAW(x) ((art_leaf *)((void *)((uintptr_t)x & ~1)))
 
+size_t art_mem_size;
+
 /**
  * Allocates a node of the given type,
  * initializes to zero and sets the type.
@@ -1093,4 +1095,52 @@ art_iter_prefix(art_tree *t, const unsigned char *key, int key_len, art_callback
         depth++;
     }
     return 0;
+}
+
+int
+size_incr(void *data, const unsigned char *key, uint32_t key_len, void *value)
+{
+    uint64_t *size = (uint64_t *)data;
+    size[0]        = size[0] + 1;
+    return 0;
+}
+
+uint64_t
+art_iter_size(art_tree *t)
+{
+    uint64_t *rst = (uint64_t *)calloc(1, sizeof(uint64_t));
+    art_iter(t, size_incr, rst);
+    return *rst;
+}
+
+uint64_t
+art_iter_prefix_size(art_tree *t, const unsigned char *prefix, int prefix_len)
+{
+    uint64_t *rst = (uint64_t *)calloc(1, sizeof(uint64_t));
+    art_iter_prefix(t, prefix, prefix_len, size_incr, rst);
+    return *rst;
+}
+
+perf_info_t *
+get_perf_info_art(art_tree *art)
+{
+    GET_PERF_INFO(art->root)
+}
+
+void
+reset_perf_info_counters_art(art_tree *art)
+{
+    RESET_PERF_INFO_COUNTERS(art->root);
+}
+
+size_t
+get_art_mem_size()
+{
+    return art_mem_size;
+}
+
+size_t
+get_mem_usage_by_all_arts()
+{
+    return get_art_mem_size();
 }

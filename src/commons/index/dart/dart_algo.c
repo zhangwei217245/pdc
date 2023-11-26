@@ -180,7 +180,7 @@ md5(const uint8_t *initial_msg, size_t initial_len, uint8_t *digest)
 }
 
 uint32_t
-djb2_hash(char *str, int len)
+djb2_hash_u32(char *str, int len)
 {
     uint32_t hash = 5381;
     int      i    = 0;

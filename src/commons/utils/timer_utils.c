@@ -65,19 +65,6 @@ timer_unpause(stopwatch_t *t)
     t->paused     = false;
 }
 
-stw_nanosec_t
-timer_delta_ns(stopwatch_t *t)
-{
-    if (t->running)
-        return get_ticks() - (t->start_mark);
-
-    if (t->paused)
-        return t->pause_mark;
-
-    // Will never actually get here
-    return (t->pause_mark) - (t->start_mark);
-}
-
 double
 timer_delta_us(stopwatch_t *t)
 {
@@ -89,6 +76,21 @@ timer_delta_us(stopwatch_t *t)
 
     // Will never actually get here
     return (double)((t->pause_mark) - (t->start_mark));
+}
+
+stw_nanosec_t
+timer_delta_ns(stopwatch_t *t)
+{
+    return (stw_nanosec_t)(timer_delta_us(t) * 1000);
+    // TODO: implement this with higher precision
+    // if (t->running)
+    //     return get_ticks() - (t->start_mark);
+
+    // if (t->paused)
+    //     return t->pause_mark;
+
+    // // Will never actually get here
+    // return (t->pause_mark) - (t->start_mark);
 }
 
 double

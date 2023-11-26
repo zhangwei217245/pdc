@@ -107,7 +107,7 @@ init_in_mem_index(int _parallelism)
 void
 create_in_mem_index_for_attr(index_anchor_t *idx_anchor, miqs_meta_attribute_t *attr)
 {
-    unsigned long attr_name_hval = djb2_hash((unsigned char *)attr->attr_name) % idx_anchor->parallelism;
+    unsigned long attr_name_hval = djb2_hash_ul((unsigned char *)attr->attr_name) % idx_anchor->parallelism;
     pthread_rwlock_wrlock(&(idx_anchor->GLOBAL_INDEX_LOCK[attr_name_hval]));
     art_tree *  global_art = idx_anchor->root_art_array[attr_name_hval];
     char *      file_path  = attr->file_path_str;
@@ -137,6 +137,7 @@ create_in_mem_index_for_attr(index_anchor_t *idx_anchor, miqs_meta_attribute_t *
                 leaf_cnt->is_float   = 0;
                 leaf_cnt->is_numeric = 0;
                 leaf_cnt->art        = (art_tree *)ctr_calloc(1, sizeof(art_tree), get_index_size_ptr());
+                break;
             default:
                 into_art = 0;
                 break;
@@ -321,9 +322,9 @@ dump_mdb_index_to_disk(char *filename, index_anchor_t *idx_anchor)
         linked_list_t *object_list = idx_anchor->object_paths_list[i];
         append_path_list(object_list, disk_idx_stream);
         // 3. append attribute region
-        int i = 0;
-        for (i = 0; i < idx_anchor->parallelism; i++) {
-            art_tree *name_art = idx_anchor->root_art_array[i];
+        int j = 0;
+        for (j = 0; j < idx_anchor->parallelism; j++) {
+            art_tree *name_art = idx_anchor->root_art_array[j];
             append_attr_root_tree(name_art, disk_idx_stream);
         }
     }
@@ -336,7 +337,7 @@ load_mdb_file_to_index(char *filename, index_anchor_t *_idx_anchor)
 {
     int rst = 0;
     if (access(filename, F_OK) == 0 && access(filename, R_OK) == 0) {
-        size_t fsize = get_file_size(filename);
+        size_t fsize = pdc_get_file_size(filename);
         if (fsize > 0) {
             FILE *disk_idx_stream = fopen(filename, "r");
             fseek(disk_idx_stream, 0, SEEK_SET);
@@ -352,7 +353,7 @@ load_mdb_file_to_index(char *filename, index_anchor_t *_idx_anchor)
             int i = 0;
             // Repeat the index loading procedure for p times (p = parallelism)
             for (i = 0; i < idx_anchor->parallelism; i++) {
-                int rst = read_into_path_list(idx_anchor->file_paths_list[i], disk_idx_stream);
+                rst = read_into_path_list(idx_anchor->file_paths_list[i], disk_idx_stream);
                 idx_anchor->total_num_files += list_count(idx_anchor->file_paths_list[i]);
                 if (rst != 1) {
                     return 0;
@@ -438,7 +439,7 @@ load_aof(char *filepath, index_anchor_t *idx_ancr)
     size_t          count      = 0;
     index_anchor_t *idx_anchor = idx_ancr;
     if (access(filepath, F_OK) == 0 && access(filepath, R_OK) == 0) {
-        size_t fsize = get_file_size(filepath);
+        size_t fsize = pdc_get_file_size(filepath);
         if (fsize > 0) {
             // file exists, readable. try to load index
             idx_anchor->on_disk_file_stream    = fopen(filepath, "r");

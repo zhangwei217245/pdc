@@ -19,6 +19,6 @@ uint32_t murmur3_32(const uint8_t *key, size_t len, uint32_t seed);
 
 uint32_t md5_hash(int prefix_len, char *word);
 
-uint32_t djb2_hash(char *str, int len);
+uint32_t djb2_hash_u32(char *str, int len);
 
 #endif // DART_ALGO_H

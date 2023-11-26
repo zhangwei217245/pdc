@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include "pdc_malloc.h"
+#include "pdc_mem_perf.h"
 
 #ifndef ART_H
 #define ART_H
@@ -39,6 +40,7 @@ typedef struct {
     uint8_t       type;
     uint8_t       num_children;
     unsigned char partial[MAX_PREFIX_LEN];
+    DECLARE_PERF_INFO_FIELDS
 } art_node;
 
 /**
@@ -213,6 +215,24 @@ int art_iter(art_tree *t, art_callback cb, void *data);
  * @return 0 on success, or the return of the callback.
  */
 int art_iter_prefix(art_tree *t, const unsigned char *prefix, int prefix_len, art_callback cb, void *data);
+
+/**
+ * Get number of items visited by art_iter callback function.
+ */
+uint64_t art_iter_size(art_tree *t);
+
+/**
+ * Get number of items visited by art_iter_prefix callback function.
+ */
+uint64_t art_iter_prefix_size(art_tree *t, const unsigned char *prefix, int prefix_len);
+
+perf_info_t *get_perf_info_art(art_tree *art);
+
+void reset_perf_info_counters_art(art_tree *art);
+
+size_t get_art_mem_size();
+
+size_t get_mem_usage_by_all_arts();
 
 #ifdef __cplusplus
 }

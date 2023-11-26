@@ -73,7 +73,7 @@ pdc_walk_fs_dir(const char *dir_path, int (*filter)(const struct dirent *),
                 if (on_dir) {
                     on_dir(entry, dir_path, coll_args);
                 }
-                collect_dir(path, filter, cmp, sd, topk, on_file, on_dir, coll_args, pre_op, post_op);
+                pdc_walk_fs_dir(path, filter, cmp, sd, topk, on_file, on_dir, coll_args, pre_op, post_op);
             }
             else {
                 if (on_file) {
@@ -94,7 +94,7 @@ pdc_walk_fs_dir(const char *dir_path, int (*filter)(const struct dirent *),
 }
 
 int
-is_regular_file(const char *path)
+pdc_is_regular_file(const char *path)
 {
     struct stat path_stat;
     stat(path, &path_stat);
@@ -102,7 +102,7 @@ is_regular_file(const char *path)
 }
 
 size_t
-get_file_size(const char *filename)
+pdc_get_file_size(const char *filename)
 {
     struct stat st;
     if (stat(filename, &st) != 0) {
@@ -112,7 +112,7 @@ get_file_size(const char *filename)
 }
 
 int
-dir_exists(char *dirname)
+pdc_dir_exists(char *dirname)
 {
     DIR *dir = opendir(dirname);
     if (dir) {
@@ -132,7 +132,7 @@ dir_exists(char *dirname)
 
 /* Function with behaviour like `mkdir -p'  */
 int
-mkpath(const char *s, mode_t mode)
+pdc_mkpath(const char *s, mode_t mode)
 {
     char *q, *r = NULL, *path = NULL, *up = NULL;
     int   rv;
@@ -153,7 +153,7 @@ mkpath(const char *s, mode_t mode)
     if ((up = strdup(r)) == NULL)
         exit(1);
 
-    if ((mkpath(up, mode) == -1) && (errno != EEXIST))
+    if ((pdc_mkpath(up, mode) == -1) && (errno != EEXIST))
         goto out;
 
     if ((mkdir(path, mode) == -1) && (errno != EEXIST))

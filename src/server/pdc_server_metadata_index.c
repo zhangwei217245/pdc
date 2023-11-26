@@ -288,14 +288,15 @@ create_index_for_attr_name(char *attr_name, char *attr_value, int8_t attr_type, 
         for (int jj = 0; jj < val_len; jj++) {
             unsigned char *val_key = (unsigned char *)substring(attr_value, jj, val_len);
 #endif
-            create_prefix_index_for_attr_value((void **)&secondary_trie, val_key, data);
+            create_prefix_index_for_attr_value((void **)&secondary_trie, val_key, attr_type, data);
         } // this matches with the 'r' loop or 'jj' loop
     }     // this matches with the 'rr' loop or 'j' loop
     return nm_trie;
 }
 
 perr_t
-metadata_index_create(char *attr_key, char *attr_value, int8_t attr_type, uint64_t obj_locator, int8_t index_type)
+metadata_index_create(char *attr_key, char *attr_value, int8_t attr_type, uint64_t obj_locator,
+                      int8_t index_type)
 {
     perr_t      ret_value = FAIL;
     stopwatch_t timer;
@@ -411,7 +412,8 @@ delete_index_for_attr_name(char *attr_name, char *attr_value, int8_t attr_type, 
 }
 
 perr_t
-metadata_index_delete(char *attr_key, char *attr_value, int8_t attr_type, uint64_t obj_locator, int8_t index_type)
+metadata_index_delete(char *attr_key, char *attr_value, int8_t attr_type, uint64_t obj_locator,
+                      int8_t index_type)
 {
     perr_t      ret_value = FAIL;
     stopwatch_t timer;

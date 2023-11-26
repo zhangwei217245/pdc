@@ -646,7 +646,7 @@ DHT_hash(DART *dart_g, size_t len, char *key, dart_op_type_t op_type, index_hash
     if (out == NULL) {
         return 0;
     }
-    uint64_t hashVal   = djb2_hash(key, (int)len);
+    uint64_t hashVal   = djb2_hash_u32(key, (int)len);
     uint64_t server_id = hashVal % (dart_g->num_server);
     int      i         = 0;
     *out               = NULL;

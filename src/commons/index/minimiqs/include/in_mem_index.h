@@ -7,6 +7,8 @@
 #include "pdc_hl_linklist.h"
 #include "pdc_hl_rbtree.h"
 #include "on_disk_index.h"
+#include "pdc_hash_utils.h"
+#include "pdc_fs_ops.h"
 #include <pthread.h>
 
 // For index creation,
