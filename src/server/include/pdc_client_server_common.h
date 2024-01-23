@@ -1157,7 +1157,8 @@ typedef struct {
     int8_t            hash_algo;
     hg_const_string_t attr_key;
     hg_const_string_t attr_val;
-    int8_t            attr_type;
+    int8_t            attr_dtype;
+    uint64_t          vnode_id;
     int8_t            obj_ref_type;
     uint64_t          obj_primary_ref;
     uint64_t          obj_secondary_ref;
@@ -3862,7 +3863,12 @@ hg_proc_dart_perform_one_server_in_t(hg_proc_t proc, void *data)
         // HG_LOG_ERROR("Proc error");
         return ret;
     }
-    ret = hg_proc_hg_int8_t(proc, &struct_data->attr_type);
+    ret = hg_proc_int8_t(proc, &struct_data->attr_dtype);
+    if (ret != HG_SUCCESS) {
+        // HG_LOG_ERROR("Proc error");
+        return ret;
+    }
+    ret = hg_proc_uint64_t(proc, &struct_data->vnode_id);
     if (ret != HG_SUCCESS) {
         // HG_LOG_ERROR("Proc error");
         return ret;

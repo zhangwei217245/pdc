@@ -17,7 +17,7 @@
 #include "string_utils.h"
 #include "pdc_config.h"
 
-typedef enum { NUMERIC = 1, TIME = 2, CHAR = 3, BINARY = 4 } dart_indexed_value_type_t;
+typedef enum { INTEGER = 1, FLOAT = 2, STRING = 3 } dart_indexed_value_type_t;
 
 typedef enum { DHT_FULL_HASH = 1, DHT_INITIAL_HASH = 2, DART_HASH = 3 } dart_hash_algo_t;
 
@@ -64,6 +64,7 @@ typedef struct {
 typedef struct {
     uint32_t server_id;
     char *   key;
+    uint64_t virtual_node_id;
 } index_hash_result_t;
 
 // Defining a function pointer by which the server load information can be retrieved.
@@ -78,7 +79,7 @@ typedef dart_server (*get_server_info_callback)(uint32_t server_id);
  *
  */
 void dart_space_init(DART *dart, int num_client, int num_server, int alphabet_size, int extra_tree_height,
-                     int replication_factor);
+                     int replication_factor, int max_server_num_to_adapt);
 
 /**
  * This function make the client request counter increment by 1.
@@ -93,18 +94,26 @@ int dart_client_request_count_incr(DART *dart_g);
 uint64_t get_server_id_by_vnode_id(DART *dart, uint64_t vnode_id);
 
 /**
+ * This function is for getting the virtual node IDs that a given server ID can be mapped to.
+ *
+ * The return value is the length of the ID array.
+ */
+size_t get_vnode_ids_by_serverID(DART *dart, uint32_t serverID, uint64_t **out);
+
+/**
  * This function is for getting the base virtual node ID by a given string.
  *
  */
 uint64_t get_base_virtual_node_id_by_string(DART *dart, char *str);
 
-/**
- * This function is for getting the alternative virtual node ID.
- *
- */
-uint64_t get_reconciled_vnode_id_with_power_of_two_choice_rehashing(DART *dart, uint64_t base_vnode_idx,
-                                                                    char *                   word,
-                                                                    get_server_info_callback get_server_cb);
+// /**
+//  * This function is for getting the alternative virtual node ID.
+//  *
+//  */
+// uint64_t get_reconciled_vnode_id_with_power_of_two_choice_rehashing(DART *dart, uint64_t base_vnode_idx,
+//                                                                     char *                   word,
+//                                                                     get_server_info_callback
+//                                                                     get_server_cb);
 
 /**
  * Get IDs of all virtual nodes of replicas by given string and overall tree-height setting.
