@@ -461,7 +461,7 @@ main(int argc, char *argv[])
 
     // // insert data
     // for (int i = 0; i < num_clients; i++) {
-    //     for (int id = 10000; id < 20000; id++) {
+    //     for (int id = 0; id < 1000; id++) {
     //         if (id % num_clients != i)
     //             continue;
     //         client_insert_data(&clients[i], id);
@@ -470,7 +470,7 @@ main(int argc, char *argv[])
 
     // // // search data
     // for (int i = 0; i < num_clients; i++) {
-    //     for (int id = 10000; id < 20000; id++) {
+    //     for (int id = 0; id < 1000; id++) {
     //         if (id % num_clients != i)
     //             continue;
     //         client_perform_search(&clients[i], id);
@@ -479,7 +479,7 @@ main(int argc, char *argv[])
 
     // // // delete data
     // for (int i = 0; i < num_clients; i++) {
-    //     for (int id = 10000; id < 20000; id++) {
+    //     for (int id = 0; id < 1000; id++) {
     //         if (id % num_clients != i)
     //             continue;
     //         client_delete_data(&clients[i], id);
@@ -488,7 +488,7 @@ main(int argc, char *argv[])
 
     // // // search data
     // for (int i = 0; i < num_clients; i++) {
-    //     for (int id = 10000; id < 20000; id++) {
+    //     for (int id = 0; id < 1000; id++) {
     //         if (id % num_clients != i)
     //             continue;
     //         client_perform_search(&clients[i], id);
