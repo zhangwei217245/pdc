@@ -36,14 +36,15 @@ test_base_type()
     BULKI_put(bulki, strKey, strValue);
 
     // Serialize the data
-    void *buffer = BULKI_serialize(bulki);
+    size_t size;
+    void * buffer = BULKI_serialize(bulki, &size);
 
     // printf("Serialized data:\n");
     // BULKI_print(bulki);
 
     // Do some I/O if you like
     FILE *fp = fopen("test_bulki.bin", "wb");
-    fwrite(buffer, 1, bulki->totalSize, fp);
+    fwrite(buffer, 1, size, fp);
     fclose(fp);
 
     BULKI_free(bulki, 1);
@@ -160,7 +161,8 @@ test_base_array_entitiy()
     BULKI_put(bulki2, intKey2, intArr2);
 
     // Serialize the data
-    void *buffer = BULKI_serialize(bulki2);
+    size_t size;
+    void * buffer = BULKI_serialize(bulki2, &size);
 
     // printf("Serialized data:\n");
     // BULKI_print(bulki2);
@@ -219,7 +221,8 @@ test_embedded_entitiy()
     BULKI_put(bulki, strKey, strArr);
 
     // Serialize the data
-    void *buffer = BULKI_serialize(bulki);
+    size_t size;
+    void * buffer = BULKI_serialize(bulki, &size);
 
     // printf("Serialized data:\n");
     // BULKI_print(bulki);
@@ -251,8 +254,8 @@ test_bulki_in_entitiy()
     BULKI *bulki = BULKI_init(1);
     // BULKI in BULKI_Entity
     BULKI_Entity *nestEntity = BULKI_ENTITY(bulki, 1, PDC_BULKI, PDC_CLS_ITEM);
-
-    void *        buffer         = BULKI_Entity_serialize(nestEntity);
+    size_t        size;
+    void *        buffer         = BULKI_Entity_serialize(nestEntity, &size);
     BULKI_Entity *des_nestEntity = BULKI_Entity_deserialize(buffer);
 
     int equal = BULKI_Entity_equal(nestEntity, des_nestEntity);
@@ -262,7 +265,7 @@ test_bulki_in_entitiy()
     BULKI_put(bulki, BULKI_ENTITY("key", 1, PDC_STRING, PDC_CLS_ITEM),
               BULKI_ENTITY("value", 1, PDC_STRING, PDC_CLS_ITEM));
 
-    buffer         = BULKI_Entity_serialize(nestEntity);
+    buffer         = BULKI_Entity_serialize(nestEntity, &size);
     des_nestEntity = BULKI_Entity_deserialize(buffer);
 
     equal = BULKI_Entity_equal(nestEntity, des_nestEntity);
@@ -274,7 +277,7 @@ test_bulki_in_entitiy()
 
     BULKI_put(bulki, BULKI_ENTITY("key2", 1, PDC_STRING, PDC_CLS_ITEM), secondValue);
 
-    buffer         = BULKI_Entity_serialize(nestEntity);
+    buffer         = BULKI_Entity_serialize(nestEntity, &size);
     des_nestEntity = BULKI_Entity_deserialize(buffer);
 
     equal = BULKI_Entity_equal(nestEntity, des_nestEntity);
@@ -365,10 +368,10 @@ int
 main(int argc, char *argv[])
 {
     printf("test_base_type RST = %d\n", test_base_type());
-    // printf("test_put_replace RST = %d\n", test_put_replace());
-    // printf("test_base_array_entitiy RST = %d\n", test_base_array_entitiy());
-    // printf("test_embedded_entitiy RST = %d\n", test_embedded_entitiy());
-    // printf("test_nested_entitiy RST = %d\n", test_bulki_in_entitiy());
+    printf("test_put_replace RST = %d\n", test_put_replace());
+    printf("test_base_array_entitiy RST = %d\n", test_base_array_entitiy());
+    printf("test_embedded_entitiy RST = %d\n", test_embedded_entitiy());
+    printf("test_nested_entitiy RST = %d\n", test_bulki_in_entitiy());
     printf("bulki_small_json_serialization_test RST = %d\n", bulki_small_json_serialization_test());
     return 0;
 }

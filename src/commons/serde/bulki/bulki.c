@@ -1,4 +1,5 @@
 #include "bulki.h"
+#include "bulki_vle_util.h"
 
 size_t
 get_BULKI_Entity_size(BULKI_Entity *bulk_entity)
@@ -6,7 +7,12 @@ get_BULKI_Entity_size(BULKI_Entity *bulk_entity)
     if (bulk_entity == NULL) {
         return 0;
     }
+    // initial size -> size: vle, class & type : 8bits, count: vle
+    // size_t size = BULKI_vle_encoded_uint_size((uint64_t)bulk_entity->size) + sizeof(uint8_t) +
+    //               BULKI_vle_encoded_uint_size((uint64_t)bulk_entity->count);
+
     size_t size = sizeof(int8_t) * 2 + sizeof(uint64_t) * 2;
+
     if (bulk_entity->pdc_class == PDC_CLS_ARRAY) {
         if (bulk_entity->pdc_type == PDC_BULKI) {
             BULKI *bulki_array = (BULKI *)bulk_entity->data;
@@ -47,7 +53,20 @@ get_BULKI_size(BULKI *bulki)
     if (bulki == NULL) {
         return 0;
     }
-    size_t size = sizeof(uint64_t) * 6; // totalSize + numKeys + headerSize + dataSize + offsets * 2;
+    size_t size = 0;
+
+    // Calculate the size for each VLE-encoded field
+    // size += BULKI_vle_encoded_uint_size(bulki->totalSize);
+    // size += BULKI_vle_encoded_uint_size(bulki->numKeys);
+    // size += BULKI_vle_encoded_uint_size(bulki->header->headerSize);
+    // size += BULKI_vle_encoded_uint_size(bulki->data->dataSize);
+
+    // Add the size of the offsets if they are VLE-encoded as well
+    // size += BULKI_vle_encoded_uint_size(bulki->header->headerSize); // Assuming offsets are VLE-encoded
+    // size += BULKI_vle_encoded_uint_size(bulki->data->dataSize);     // Assuming offsets are VLE-encoded
+
+    size += sizeof(uint64_t) * 6;
+
     for (size_t i = 0; i < bulki->numKeys; i++) {
         size += get_BULKI_Entity_size(&bulki->header->keys[i]);
         size += get_BULKI_Entity_size(&bulki->data->values[i]);

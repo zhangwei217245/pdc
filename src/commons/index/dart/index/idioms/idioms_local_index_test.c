@@ -88,8 +88,7 @@ client_generate_request(dummy_client_t *client, IDIOMS_OP_TYPE op_type, char *ke
         BULKI_ENTITY_append_BULKI_Entity(bentArr, value_ent);                                     // 2. value
         BULKI_ENTITY_append_BULKI_Entity(bentArr, BULKI_ENTITY(id, 1, PDC_UINT64, PDC_CLS_ITEM)); // 3. id
     }
-    client->buffer_out_size = get_BULKI_Entity_size(bentArr);
-    client->buffer_out      = BULKI_Entity_serialize(bentArr);
+    client->buffer_out = BULKI_Entity_serialize(bentArr, &client->buffer_out_size);
 }
 
 void
@@ -214,8 +213,7 @@ server_perform_operation(dummy_server_t *server)
         BULKI_ENTITY_append_BULKI_Entity(resultBent,
                                          BULKI_ENTITY(obj_id_list, count, PDC_UINT64, PDC_CLS_ARRAY));
     }
-    server->buffer_out_size = get_BULKI_Entity_size(resultBent);
-    server->buffer_out      = BULKI_Entity_serialize(resultBent);
+    server->buffer_out = BULKI_Entity_serialize(resultBent, &server->buffer_out_size);
     free(server->buffer_in);
 }
 
