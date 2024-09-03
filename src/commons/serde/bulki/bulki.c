@@ -546,6 +546,7 @@ BULKI_Entity_free(BULKI_Entity *bulk_entity, int free_struct)
                 for (size_t i = 0; i < bulk_entity->count; i++) {
                     BULKI_free(&bulki_array[i], 0);
                 }
+                printf("Freeing bulki_array 1\n");
                 bulki_array = NULL;
             }
             else if (bulk_entity->pdc_type == PDC_BULKI_ENT && bulk_entity->data != NULL) {
@@ -553,6 +554,7 @@ BULKI_Entity_free(BULKI_Entity *bulk_entity, int free_struct)
                 for (size_t i = 0; i < bulk_entity->count; i++) {
                     BULKI_Entity_free(&bulki_entity_array[i], 0);
                 }
+                printf("Freeing bulki_array 2\n");
                 bulki_entity_array = NULL;
             }
         }
@@ -560,9 +562,14 @@ BULKI_Entity_free(BULKI_Entity *bulk_entity, int free_struct)
             if (bulk_entity->pdc_type == PDC_BULKI && bulk_entity->data != NULL) {
                 BULKI_free((BULKI *)bulk_entity->data, 0);
                 bulk_entity->data = NULL;
+                printf("Freeing bulki_item 1\n");
             }
         }
+        printf("Freeing bulk_entity\n");
         if (bulk_entity->data != NULL) {
+            printf("bulki_entity->class: %d, bulki_entity->class: %d, bulki_entity->data: %p, bulki_entity: "
+                   "%p\n",
+                   bulk_entity->pdc_class, bulk_entity->pdc_type, bulk_entity->data, bulk_entity);
             free(bulk_entity->data);
             bulk_entity->data = NULL;
         }

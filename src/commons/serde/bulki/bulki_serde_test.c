@@ -18,7 +18,10 @@ test_base_type()
     intArrVal[1]            = 8; // y
     intArrVal[2]            = 7; // z
     BULKI_Entity *intArrKey = BULKI_ENTITY(intArrVal, 3, PDC_INT, PDC_CLS_ARRAY);
-    BULKI_put(bulki, intArrKey, intValue);
+    // Note that if you already inserted a BULKI_Entity into a BULKI or another BULKI_Entity,
+    // you should not reuse it again, rather, you should create a new BULKI_Entity. Otherwise, there will be
+    // freeing issue.
+    BULKI_put(bulki, intArrKey, BULKI_ENTITY(&intVal, 1, PDC_INT, PDC_CLS_ARRAY));
 
     char *        doubleKey_str = "double";
     double        doubleVal     = 3.14159;
@@ -43,6 +46,9 @@ test_base_type()
     fwrite(buffer, 1, bulki->totalSize, fp);
     fclose(fp);
 
+    BULKI_free(bulki, 1);
+    // printf("Freed bulki\n");
+
     // read the file and deserialize
     fp = fopen("test_bulki.bin", "rb");
     fseek(fp, 0, SEEK_END);
@@ -66,8 +72,7 @@ test_base_type()
     // Free the memory
     BULKI_free(deserializedBulki, 1);
     // printf("Freed deserializedBulki\n");
-    BULKI_free(bulki, 1);
-    // printf("Freed bulki\n");
+
     free(buffer);
 
     return equal;
