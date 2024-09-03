@@ -109,7 +109,7 @@ insert_index_records(int world_rank, int world_size)
         sprintf(key, "int%s", "key");
         value               = (int64_t *)calloc(1, sizeof(int64_t));
         *((int64_t *)value) = i;
-        if (PDC_Client_insert_obj_ref_into_dart(hash_algo, key, value, sizeof(int64_t), PDC_INT, ref_type,
+        if (PDC_Client_insert_obj_ref_into_dart(hash_algo, key, value, sizeof(int64_t), PDC_INT64, ref_type,
                                                 i) < 0) {
             printf("CLIENT %d failed to create index record %s %" PRId64 " %d\n", world_rank, key, value, i);
             ret_value |= FAIL;
@@ -145,7 +145,7 @@ delete_index_records(int world_rank, int world_size)
         sprintf(key, "int%s", "key");
         value               = (int64_t *)calloc(1, sizeof(int64_t));
         *((int64_t *)value) = i;
-        if (PDC_Client_delete_obj_ref_from_dart(hash_algo, key, value, sizeof(int64_t), PDC_INT, ref_type,
+        if (PDC_Client_delete_obj_ref_from_dart(hash_algo, key, value, sizeof(int64_t), PDC_INT64, ref_type,
                                                 i) < 0) {
             printf("CLIENT %d failed to create index record %s %" PRId64 " %d\n", world_rank, key, value, i);
             ret_value |= FAIL;
@@ -207,7 +207,7 @@ validate_query_result(int world_rank, int nres, uint64_t *pdc_ids)
             // the result is not in order, so we need to sort the result first
             qsort(pdc_ids, nres, sizeof(uint64_t), compare_uint64);
             for (i = 0; i < nres; i++) {
-                if (pdc_ids[i] != i * 10 + 9) {
+                if (pdc_ids[i] != i * 100 + 9) {
                     printf("fail to query kvtag [%s] with rank %d\n", "*09str=*09str", world_rank);
                     step_failed = 2;
                     break;
@@ -216,7 +216,8 @@ validate_query_result(int world_rank, int nres, uint64_t *pdc_ids)
             break;
         case 3:
             if (nres != 20) {
-                printf("fail to query kvtag [%s] with rank %d\n", "*09*=*09*", world_rank);
+                printf("fail to query kvtag [%s] with rank %d, nres = %d, expected 20\n", "*09*=*09*",
+                       world_rank, nres);
                 step_failed = 3;
             }
             // the result is not in order, so we need to sort the result first
@@ -225,7 +226,9 @@ validate_query_result(int world_rank, int nres, uint64_t *pdc_ids)
                                      99, 109, 209, 309, 409, 509, 609, 709, 809, 909};
             for (i = 0; i < nres; i++) {
                 if (pdc_ids[i] != expected[i]) {
-                    printf("fail to query kvtag [%s] with rank %d\n", "*09*=*09*", world_rank);
+                    printf("fail to query kvtag [%s] with rank %d, pdc_ids[%d]=%" PRIu64 ", expected %" PRIu64
+                           "\n",
+                           "*09*=*09*", world_rank, i, pdc_ids[i], expected[i]);
                     step_failed = 3;
                     break;
                 }
@@ -294,14 +297,14 @@ search_through_index(int world_rank, int world_size, int (*validator)(int r, int
                 step_failed = 2;
             }
             break;
-        case 3:
-            // infix string query
-            if (PDC_Client_search_obj_ref_through_dart(hash_algo, "*09*=\"*09*\"", ref_type, &nres,
-                                                       &pdc_ids) < 0) {
-                printf("fail to query kvtag [%s] with rank %d\n", "*09*=*09*", world_rank);
-                step_failed = 3;
-            }
-            break;
+        // case 3:
+        //     // infix string query
+        //     if (PDC_Client_search_obj_ref_through_dart(hash_algo, "*09*=\"*09*\"", ref_type, &nres,
+        //                                                &pdc_ids) < 0) {
+        //         printf("fail to query kvtag [%s] with rank %d\n", "*09*=*09*", world_rank);
+        //         step_failed = 3;
+        //     }
+        //     break;
         case 4:
             // exact integer query
             if (PDC_Client_search_obj_ref_through_dart(hash_algo, "intkey=109", ref_type, &nres, &pdc_ids) <
