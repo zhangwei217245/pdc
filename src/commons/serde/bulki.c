@@ -540,28 +540,35 @@ void
 BULKI_Entity_free(BULKI_Entity *bulk_entity, int free_struct)
 {
     if (bulk_entity != NULL) {
-        if (bulk_entity->pdc_class == PDC_CLS_ARRAY) {
-            if (bulk_entity->pdc_type == PDC_BULKI) {
+        if (bulk_entity->pdc_class == PDC_CLS_ARRAY) { // if the entity is an array of BULKI or BULKI_Entity
+            if (bulk_entity->pdc_type == PDC_BULKI && bulk_entity->data != NULL) {
                 BULKI *bulki_array = (BULKI *)bulk_entity->data;
                 for (size_t i = 0; i < bulk_entity->count; i++) {
                     BULKI_free(&bulki_array[i], 0);
                 }
+                bulki_array = NULL;
             }
-            else if (bulk_entity->pdc_type == PDC_BULKI_ENT) {
+            else if (bulk_entity->pdc_type == PDC_BULKI_ENT && bulk_entity->data != NULL) {
                 BULKI_Entity *bulki_entity_array = (BULKI_Entity *)bulk_entity->data;
                 for (size_t i = 0; i < bulk_entity->count; i++) {
                     BULKI_Entity_free(&bulki_entity_array[i], 0);
                 }
+                bulki_entity_array = NULL;
             }
         }
         else if (bulk_entity->pdc_class == PDC_CLS_ITEM) {
-            if (bulk_entity->pdc_type == PDC_BULKI) {
+            if (bulk_entity->pdc_type == PDC_BULKI && bulk_entity->data != NULL) {
                 BULKI_free((BULKI *)bulk_entity->data, 0);
+                bulk_entity->data = NULL;
             }
         }
-        free(bulk_entity->data);
+        if (bulk_entity->data != NULL) {
+            free(bulk_entity->data);
+            bulk_entity->data = NULL;
+        }
         if (free_struct) {
             free(bulk_entity);
+            bulk_entity = NULL;
         }
     }
 } // BULKI_Entity_free
@@ -576,8 +583,10 @@ BULKI_free(BULKI *bulki, int free_struct)
                     BULKI_Entity_free(&bulki->header->keys[i], 0);
                 }
                 free(bulki->header->keys);
+                bulki->header->keys = NULL;
             }
             free(bulki->header);
+            bulki->header = NULL;
         }
         if (bulki->data != NULL) {
             if (bulki->data->values != NULL) {
@@ -585,11 +594,14 @@ BULKI_free(BULKI *bulki, int free_struct)
                     BULKI_Entity_free(&bulki->data->values[i], 0);
                 }
                 free(bulki->data->values);
+                bulki->data->values = NULL;
             }
             free(bulki->data);
+            bulki->data = NULL;
         }
         if (free_struct) {
             free(bulki);
+            bulki = NULL;
         }
     }
 } // BULKI_free

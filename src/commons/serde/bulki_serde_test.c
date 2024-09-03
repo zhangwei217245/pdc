@@ -359,7 +359,7 @@ bulki_small_json_serialization_test()
 int
 main(int argc, char *argv[])
 {
-    // printf("test_base_type RST = %d\n", test_base_type());
+    printf("test_base_type RST = %d\n", test_base_type());
     // printf("test_put_replace RST = %d\n", test_put_replace());
     // printf("test_base_array_entitiy RST = %d\n", test_base_array_entitiy());
     // printf("test_embedded_entitiy RST = %d\n", test_embedded_entitiy());
