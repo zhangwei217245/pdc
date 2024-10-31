@@ -1065,6 +1065,7 @@ prepare_start_all_requests(pdcid_t *transfer_request_id, int size,
             }
         }
         // REGION_DYNAMIC case is allocated later, once we know the number of regions we are going to access.
+        // this is for testing if it is OBJECT_STATIC, if yes, 
         if (transfer_request->region_partition != PDC_REGION_DYNAMIC &&
             transfer_request->region_partition != PDC_REGION_LOCAL) {
             set_obj_server_bufs(transfer_request);
