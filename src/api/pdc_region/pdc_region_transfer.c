@@ -1984,9 +1984,11 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
             printf("done freeing obj_servers\n");
         }
         else if (transfer_request->region_partition == PDC_OBJ_STATIC) {
+            printf("waiting for data from server %d\n", transfer_request->data_server_id);
             ret_value = PDC_Client_transfer_request_wait(transfer_request->metadata_id[0],
                                                          transfer_request->data_server_id,
                                                          transfer_request->access_type);
+            printf("finished waiting for data from server %d\n", transfer_request->data_server_id);
             /*
                         uint64_t k;
                         printf("print bulk_buf :");
@@ -1996,19 +1998,26 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
                         printf("\n");
             */
             if (transfer_request->access_type == PDC_READ) {
+                printf("copying data from server %d to new_buf\n", transfer_request->data_server_id);
                 // printf("copy %lu bytes of data\n", transfer_request->total_data_size);
                 memcpy(transfer_request->new_buf, transfer_request->read_bulk_buf[0],
                        transfer_request->total_data_size);
+                printf("finished copying data from server %d to new_buf\n", transfer_request->data_server_id);
             }
+            printf("releasing region buffer\n");
             release_region_buffer(
                 transfer_request->buf, transfer_request->obj_dims, transfer_request->local_region_ndim,
                 transfer_request->local_region_offset, transfer_request->local_region_size, unit,
                 transfer_request->access_type, transfer_request->n_obj_servers, transfer_request->new_buf,
                 transfer_request->bulk_buf, transfer_request->bulk_buf_ref, transfer_request->read_bulk_buf);
+            printf("done releasing region buffer\n");
         }
         free(transfer_request->metadata_id);
+        printf("done freeing metadata_id\n");
         transfer_request->metadata_id = NULL;
+        printf("done setting metadata_id to NULL\n");
         remove_local_transfer_request(transfer_request->obj_pointer, transfer_request_id);
+        printf("done removing local transfer request\n");
     }
     else {
         // metadata is freed with previous wait (e.g. with posix consistency)
