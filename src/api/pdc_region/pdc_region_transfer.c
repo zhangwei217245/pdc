@@ -2261,12 +2261,12 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
         if (transfer_request->region_partition == PDC_REGION_STATIC) {
 
             for (i = 0; i < transfer_request->n_obj_servers; ++i) {
-                printf("waiting for data from server %d\n", transfer_request->obj_servers[i]);
+                // printf("waiting for data from server %d\n", transfer_request->obj_servers[i]);
                 ret_value = PDC_Client_transfer_request_wait(transfer_request->metadata_id[i],
                                                              transfer_request->obj_servers[i],
                                                              transfer_request->access_type);
 
-                printf("finished waiting for data from server %d\n", transfer_request->obj_servers[i]);
+                // printf("finished waiting for data from server %d\n", transfer_request->obj_servers[i]);
 
                 // printf("finished waiting for data from server %d, output_offsets = %lu, output_size = %lu,
                 // metadata_id = %lu\n", transfer_request->obj_servers[i],
@@ -2279,52 +2279,52 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
                     // transfer_request->sub_offsets[i][0], transfer_request->output_sizes[i][0],
                     // transfer_request->remote_region_size[0]);
 
-                    printf("copying data from server %d to new_buf\n", transfer_request->obj_servers[i]);
+                    // printf("copying data from server %d to new_buf\n", transfer_request->obj_servers[i]);
                     memcpy_subregion(transfer_request->remote_region_ndim, unit,
                                      transfer_request->access_type, transfer_request->new_buf,
                                      transfer_request->remote_region_size, transfer_request->read_bulk_buf[i],
                                      transfer_request->sub_offsets[i], transfer_request->output_sizes[i]);
-                    printf("finished copying data from server %d to new_buf\n", transfer_request->obj_servers[i]);
+                    // printf("finished copying data from server %d to new_buf\n", transfer_request->obj_servers[i]);
                 }
-                printf("freeing output_buf\n");
+                // printf("freeing output_buf\n");
                 if (transfer_request->output_buf) {
                     free(transfer_request->output_buf[i]);
                 }
-                printf("done freeing output_buf\n");
-                printf("freeing output_offsets\n");
+                // printf("done freeing output_buf\n");
+                // printf("freeing output_offsets\n");
                 free(transfer_request->output_offsets[i]);
-                printf("done freeing output_offsets\n");
+                // printf("done freeing output_offsets\n");
                 // free(transfer_request->output_sizes[i]);
                 // free(transfer_request->sub_offsets[i]);
             }
             // Copy read data from a contiguous buffer back to the user buffer using local data information.
             // printf("rank %d checkpoint %d\n", pdc_client_mpi_rank_g, __LINE__);
-            printf("releasing region buffer\n");
+            // printf("releasing region buffer\n");
             release_region_buffer(
                 transfer_request->buf, transfer_request->obj_dims, transfer_request->local_region_ndim,
                 transfer_request->local_region_offset, transfer_request->local_region_size, unit,
                 transfer_request->access_type, transfer_request->n_obj_servers, transfer_request->new_buf,
                 transfer_request->bulk_buf, transfer_request->bulk_buf_ref, transfer_request->read_bulk_buf);
-            printf("done releasing region buffer\n");
+            // printf("done releasing region buffer\n");
             free(transfer_request->output_offsets);
-            printf("done freeing output_offsets\n");
+            // printf("done freeing output_offsets\n");
             free(transfer_request->output_sizes);
-            printf("done freeing output_sizes\n");
+            // printf("done freeing output_sizes\n");
             free(transfer_request->sub_offsets);
-            printf("done freeing sub_offsets\n");
+            // printf("done freeing sub_offsets\n");
             if (transfer_request->output_buf) {
                 free(transfer_request->output_buf);
             }
-            printf("done freeing output_buf\n");
+            // printf("done freeing output_buf\n");
             free(transfer_request->obj_servers);
-            printf("done freeing obj_servers\n");
+            // printf("done freeing obj_servers\n");
         }
         else if (transfer_request->region_partition == PDC_OBJ_STATIC) {
-            printf("waiting for data from server %d\n", transfer_request->data_server_id);
+            // printf("waiting for data from server %d\n", transfer_request->data_server_id);
             ret_value = PDC_Client_transfer_request_wait(transfer_request->metadata_id[0],
                                                          transfer_request->data_server_id,
                                                          transfer_request->access_type);
-            printf("finished waiting for data from server %d\n", transfer_request->data_server_id);
+            // printf("finished waiting for data from server %d\n", transfer_request->data_server_id);
             /*
                         uint64_t k;
                         printf("print bulk_buf :");
@@ -2334,26 +2334,26 @@ PDCregion_transfer_wait(pdcid_t transfer_request_id)
                         printf("\n");
             */
             if (transfer_request->access_type == PDC_READ) {
-                printf("copying data from server %d to new_buf\n", transfer_request->data_server_id);
+                // printf("copying data from server %d to new_buf\n", transfer_request->data_server_id);
                 // printf("copy %lu bytes of data\n", transfer_request->total_data_size);
                 memcpy(transfer_request->new_buf, transfer_request->read_bulk_buf[0],
                        transfer_request->total_data_size);
-                printf("finished copying data from server %d to new_buf\n", transfer_request->data_server_id);
+                // printf("finished copying data from server %d to new_buf\n", transfer_request->data_server_id);
             }
-            printf("releasing region buffer\n");
+            // printf("releasing region buffer\n");
             release_region_buffer(
                 transfer_request->buf, transfer_request->obj_dims, transfer_request->local_region_ndim,
                 transfer_request->local_region_offset, transfer_request->local_region_size, unit,
                 transfer_request->access_type, transfer_request->n_obj_servers, transfer_request->new_buf,
                 transfer_request->bulk_buf, transfer_request->bulk_buf_ref, transfer_request->read_bulk_buf);
-            printf("done releasing region buffer\n");
+            // printf("done releasing region buffer\n");
         }
         free(transfer_request->metadata_id);
-        printf("done freeing metadata_id\n");
+        // printf("done freeing metadata_id\n");
         transfer_request->metadata_id = NULL;
         transfer_request->is_done     = 1;
         remove_local_transfer_request(transfer_request->obj_pointer, transfer_request_id);
-        printf("done removing local transfer request\n");
+        // printf("done removing local transfer request\n");
     }
     else {
         // metadata is freed with previous wait (e.g. with posix consistency)

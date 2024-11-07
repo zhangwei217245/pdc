@@ -76,6 +76,7 @@ set(PROGRAMS
   read_write_col_perf
   region_transfer_partial
   region_transfer_2D_partial
+  region_transfer_2D_partial_large
   region_transfer_3D_partial
   region_transfer_overlap
   region_transfer_overlap_2D
