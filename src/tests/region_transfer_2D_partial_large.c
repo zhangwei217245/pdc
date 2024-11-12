@@ -42,7 +42,7 @@ main(int argc, char **argv)
     char    cont_name[128], obj_name1[128], obj_name2[128];
     pdcid_t transfer_request;
 
-    int rank = 0, size = 1, i;
+    int rank = 0, size = 1;
     int ret_value = 0;
 
     uint64_t offset[2], offset_length[2];
