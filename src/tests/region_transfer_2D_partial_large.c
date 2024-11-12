@@ -165,7 +165,7 @@ main(int argc, char **argv)
 
 
     // Read data from object
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 100000000; i++) {
         int obj_id = i % 10;
         sprintf(obj_name1, "o1_%d", obj_id);
 
@@ -182,7 +182,7 @@ main(int argc, char **argv)
         offset_length[1] = 2;
         reg_global       = PDCregion_create(ndim, offset, offset_length);
 
-        memset(data_read, 0, BUF_LEN / 1000); // TODO: what should be the size of data_read here? 
+        memset(data_read, 0, BUF_LEN); // TODO: what should be the size of data_read here? 
 
         transfer_request = PDCregion_transfer_create(data_read, PDC_READ, obj1, reg, reg_global);
 
