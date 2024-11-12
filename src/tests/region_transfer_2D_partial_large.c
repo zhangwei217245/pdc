@@ -50,12 +50,12 @@ main(int argc, char **argv)
     uint64_t dims[2];
     offset[0]        = 0;
     offset[1]        = 0;
-    offset_length[0] = BUF_LEN / 2;
+    offset_length[0] = BUF_LEN;
     offset_length[1] = 2;
 
-    int *data      = (int *)malloc(sizeof(int) * BUF_LEN);
-    int *data_read = (int *)malloc(sizeof(int) * BUF_LEN);
-    dims[0]        = BUF_LEN / 2;
+    int *data      = (int *)malloc(sizeof(int) * BUF_LEN * 2);
+    int *data_read = (int *)malloc(sizeof(int) * BUF_LEN * 2);
+    dims[0]        = BUF_LEN;
     dims[1]        = 2;
 
 #ifdef ENABLE_MPI
@@ -182,7 +182,7 @@ main(int argc, char **argv)
         offset_length[1] = 2;
         reg_global       = PDCregion_create(ndim, offset, offset_length);
 
-        memset(data_read, 0, BUF_LEN); // TODO: what should be the size of data_read here? 
+        memset(data_read, 0, BUF_LEN / 1000); // TODO: what should be the size of data_read here? 
 
         transfer_request = PDCregion_transfer_create(data_read, PDC_READ, obj1, reg, reg_global);
 
