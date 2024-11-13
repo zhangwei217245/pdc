@@ -133,8 +133,8 @@ main(int argc, char **argv)
         offset_length[1] = 2;
         reg_global       = PDCregion_create(ndim, offset, offset_length);
 
-        for (i = 0; i < BUF_LEN; ++i) {
-            data[i] = i;
+        for (int j = 0; j < BUF_LEN; ++j) {
+            data[j] = j;
         }
 
         transfer_request = PDCregion_transfer_create(data, PDC_WRITE, obj1, reg, reg_global);
