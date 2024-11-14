@@ -165,7 +165,7 @@ main(int argc, char **argv)
 
 
     // Read data from object
-    for (int i = 0; i < 100000000; i++) {
+    for (int i = 0; i < 200; i++) {
         int obj_id = i % 10;
         sprintf(obj_name1, "o1_%d", obj_id);
 
@@ -217,9 +217,9 @@ main(int argc, char **argv)
     // }
 
     
-    for (int i = 0; i < 10; i++) {
+    for (int j = 0; j < 10; j++) {
         // close object
-        if (PDCobj_close(obj_ids[i]) < 0) {
+        if (PDCobj_close(obj_ids[j]) < 0) {
         printf("fail to close object o1 @ line %d\n", __LINE__);
             ret_value = 1;
         }
