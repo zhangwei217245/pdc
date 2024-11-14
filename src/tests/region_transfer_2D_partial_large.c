@@ -165,7 +165,7 @@ main(int argc, char **argv)
 
 
     // Read data from object
-    for (int i = 0; i < 200; i++) {
+    for (int i = 0; i < 100000; i++) {
         int obj_id = i % 10;
         sprintf(obj_name1, "o1_%d", obj_id);
 
