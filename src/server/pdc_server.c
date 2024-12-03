@@ -46,7 +46,7 @@
 
 #include "pdc_config.h"
 #include "pdc_utlist.h"
-#include "pdc_hash-table.h"
+#include "pdc_hash_table.h"
 #include "pdc_interface.h"
 #include "pdc_analysis_pkg.h"
 #include "pdc_client_server_common.h"
@@ -96,6 +96,7 @@ char **                   all_addr_strings_g       = NULL;
 int                       is_hash_table_init_g     = 0;
 int                       lustre_stripe_size_mb_g  = 16;
 int                       lustre_total_ost_g       = 0;
+int                       pdc_disable_checkpoint_g = 0;
 
 hg_id_t get_remote_metadata_register_id_g;
 hg_id_t buf_map_server_register_id_g;
@@ -719,15 +720,9 @@ PDC_Server_set_close(void)
 #ifdef PDC_TIMING
         start = MPI_Wtime();
 #endif
-        char *tmp_env_char = getenv("PDC_DISABLE_CHECKPOINT");
-        if (tmp_env_char != NULL && strcmp(tmp_env_char, "TRUE") == 0) {
-            if (pdc_server_rank_g == 0) {
-                printf("==PDC_SERVER[0]: checkpoint disabled!\n");
-            }
-        }
-        else {
+        if (pdc_disable_checkpoint_g == 0)
             PDC_Server_checkpoint();
-        }
+
 #ifdef PDC_TIMING
         pdc_server_timings->PDCserver_checkpoint += MPI_Wtime() - start;
 #endif
@@ -971,6 +966,7 @@ drc_access_again:
             printf("==PDC_SERVER[%d]: error with PDC_Server_restart\n", pdc_server_rank_g);
             goto done;
         }
+        metadata_index_recover(pdc_server_tmp_dir_g, pdc_server_size_g, pdc_server_rank_g);
     }
     else {
         // We are starting a brand new server
@@ -997,8 +993,8 @@ drc_access_again:
 
     n_metadata_g = 0;
 
-    // Initialize DART
-    PDC_Server_dart_init();
+    // Initialize IDIOMS
+    PDC_Server_metadata_index_init(pdc_server_size_g, pdc_server_rank_g);
 
     // PDC transfer_request infrastructures
     PDC_server_transfer_request_init();
@@ -1203,7 +1199,8 @@ PDC_Server_recv_shm_cb(const struct hg_cb_info *callback_info)
 hg_return_t
 PDC_Server_checkpoint_cb()
 {
-    PDC_Server_checkpoint();
+    if (pdc_disable_checkpoint_g == 0)
+        PDC_Server_checkpoint();
 
     return HG_SUCCESS;
 }
@@ -1436,6 +1433,8 @@ PDC_Server_checkpoint()
                all_region_count);
         fflush(stdout);
     }
+
+    metadata_index_dump(pdc_server_tmp_dir_g, pdc_server_rank_g);
 
 done:
     fflush(stdout);
@@ -1859,7 +1858,7 @@ PDC_Server_loop(hg_context_t *hg_context)
 #ifdef PDC_ENABLE_CHECKPOINT
         checkpoint_interval++;
         // Avoid calling clock() every operation
-        if (checkpoint_interval % PDC_CHECKPOINT_CHK_OP_INTERVAL == 0) {
+        if (pdc_disable_checkpoint_g == 0 && checkpoint_interval % PDC_CHECKPOINT_CHK_OP_INTERVAL == 0) {
             cur_time            = clock();
             double elapsed_time = ((double)(cur_time - last_checkpoint_time)) / CLOCKS_PER_SEC;
             /* fprintf(stderr, "PDC_SERVER: loop elapsed time %.2f\n", elapsed_time); */
@@ -1880,7 +1879,7 @@ PDC_Server_loop(hg_context_t *hg_context)
         /* Do not try to make progress anymore if we're done */
         if (hg_atomic_cas32(&close_server_g, 1, 1))
             break;
-        hg_ret = HG_Progress(hg_context, 1000);
+        hg_ret = HG_Progress(hg_context, 200);
 
     } while (hg_ret == HG_SUCCESS || hg_ret == HG_TIMEOUT);
 
@@ -2009,6 +2008,7 @@ PDC_Server_mercury_register()
     PDC_metadata_add_kvtag_register(hg_class_g);
     PDC_metadata_get_kvtag_register(hg_class_g);
     PDC_metadata_del_kvtag_register(hg_class_g);
+    PDC_send_rpc_register(hg_class_g);
 
     // bulk
     PDC_query_partial_register(hg_class_g);
@@ -2113,7 +2113,7 @@ PDC_Server_get_env()
         data_sieving_g = atoi(tmp_env_char);
     }
     else {
-        data_sieving_g = 0;
+        data_sieving_g = 1;
     }
 
     // Get number of OST per file
@@ -2154,7 +2154,7 @@ PDC_Server_get_env()
 
     tmp_env_char = getenv("PDC_GEN_HIST");
     if (tmp_env_char != NULL)
-        gen_hist_g = 1;
+        gen_hist_g = atoi(tmp_env_char);
 
     tmp_env_char = getenv("PDC_GEN_FASTBIT_IDX");
     if (tmp_env_char != NULL)
@@ -2178,6 +2178,13 @@ PDC_Server_get_env()
         use_sqlite3_g = 1;
         if (pdc_server_rank_g == 0)
             printf("==PDC_SERVER[%d]: using SQLite3 for kvtag\n", pdc_server_rank_g);
+    }
+
+    tmp_env_char = getenv("PDC_DISABLE_CHECKPOINT");
+    if (tmp_env_char != NULL && strcmp(tmp_env_char, "TRUE") == 0) {
+        pdc_disable_checkpoint_g = 1;
+        if (pdc_server_rank_g == 0)
+            printf("==PDC_SERVER[0]: checkpoint disabled!\n");
     }
 
     if (pdc_server_rank_g == 0) {

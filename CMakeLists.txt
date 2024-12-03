@@ -55,7 +55,7 @@ endif()
 # Version information
 #------------------------------------------------------------------------------
 set(PDC_VERSION_MAJOR "0")
-set(PDC_VERSION_MINOR "1")
+set(PDC_VERSION_MINOR "6")
 set(PDC_VERSION_PATCH "0")
 set(PDC_PACKAGE "pdc")
 set(PDC_PACKAGE_NAME "PDC")
@@ -198,6 +198,9 @@ if(SUPPRESS_IGNORABLE_WARNINGS)
     set(SUPPRESSED_LIST "-Wno-deprecated-non-prototype" ${SUPPRESSED_LIST})
   else()
     set(SUPPRESSED_LIST "-Wno-maybe-uninitialized" ${SUPPRESSED_LIST})
+    set(SUPPRESSED_LIST "-Wno-alloc-size-larger-than" ${SUPPRESSED_LIST})
+    # set(SUPPRESSED_LIST "-Wno-use-after-free" ${SUPPRESSED_LIST})
+    set(SUPPRESSED_LIST "-Wno-stringop-truncation" ${SUPPRESSED_LIST})
   endif()
   set(SUPPRESSED_LIST "-Wno-sign-compare" ${SUPPRESSED_LIST})
   set(SUPPRESSED_LIST "-Wno-format" ${SUPPRESSED_LIST})
@@ -207,6 +210,8 @@ if(SUPPRESS_IGNORABLE_WARNINGS)
   set(SUPPRESSED_LIST "-Wno-unused-function" ${SUPPRESSED_LIST})
   set(SUPPRESSED_LIST "-Wno-unused-result" ${SUPPRESSED_LIST})
   set(SUPPRESSED_LIST "-Wno-unused-but-set-variable" ${SUPPRESSED_LIST})
+  set(SUPPRESSED_LIST "-Wno-inline" ${SUPPRESSED_LIST})
+  set(SUPPRESSED_LIST "-Wno-array-bounds" ${SUPPRESSED_LIST})
 
   if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(${SUPPRESSED_LIST})
@@ -383,10 +388,10 @@ endif()
 option(PDC_SERVER_CACHE "Enable Server Caching." ON)
 if(PDC_SERVER_CACHE)
   set(PDC_SERVER_CACHE 1)
-  set(PDC_SERVER_CACHE_MAX_GB "3" CACHE STRING "Max GB for server cache")
-  set(PDC_SERVER_CACHE_FLUSH_TIME "30" CACHE STRING "Flush time for server cache")
+  set(PDC_SERVER_CACHE_MAX_GB "32" CACHE STRING "Max GB for server cache")
+  set(PDC_SERVER_IDLE_CACHE_FLUSH_TIME "3" CACHE STRING "Idle time to initiate flush from server cache")
 
-  add_compile_definitions(PDC_SERVER_CACHE_MAX_GB=${PDC_SERVER_CACHE_MAX_GB} PDC_SERVER_CACHE_FLUSH_TIME=${PDC_SERVER_CACHE_FLUSH_TIME})
+  add_compile_definitions(PDC_SERVER_CACHE_MAX_GB=${PDC_SERVER_CACHE_MAX_GB} PDC_SERVER_IDLE_CACHE_FLUSH_TIME=${PDC_SERVER_IDLE_CACHE_FLUSH_TIME})
 endif()
 
 
@@ -480,6 +485,14 @@ endif()
 option(PDC_ENABLE_SQLITE3 "Enable SQLite3 (experimental)." OFF)
 if(PDC_ENABLE_SQLITE3)
     set(ENABLE_SQLITE3 1)
+endif()
+
+#-----------------------------------------------------------------------------
+# ZFP option
+#-----------------------------------------------------------------------------
+option(PDC_ENABLE_ZFP "Enable ZFP." OFF)
+if(PDC_ENABLE_ZFP)
+    set(ENABLE_ZFP 1)
 endif()
 
 # Check availability of symbols

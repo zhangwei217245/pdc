@@ -154,6 +154,56 @@ For index-facilitated approach, here are the APIs you can call for different com
 
 Before using these APIs, you need to create your index first, so please remember to call `PDC_Client_insert_obj_ref_into_dart` right after a successful function call of `PDCobj_put_tag`.
 
+Note for the query string: 
+
+ * For String Queries:
+ * The query string can be of the following format:
+ * String Queries:
+ * 1. Exact: key=\"value\"
+ * 2. Prefix: key*=\"value*\"
+ * 3. Suffix: *key=\"*value\"
+ * 4. Infix: *key*=\"*value*\"
+ *
+ * For Number Queries:
+ * 1. Exact: key=value
+ * 2. Range: key=value1|~|value2 (inclusive on both ends, '|' stands for inclusion)
+ * 3. Range: key=value1|~ (inclusive on the lower end)
+ * 4. Range: key=~|value2 (inclusive on the upper end)
+ * 5. Range: key=value1~value2 (exclusive on both ends)
+ * 6. Range: key=~value2 (exclusive on the upper end)
+ * 7. Range: key=value1~ (exclusive on the lower end)
+
+See the API documentation for more details about the usage of these APIs.
+
+
+------------------------------------------------------------
+DART Suffix Tree Mode
+------------------------------------------------------------
+
+In DART, to support efficient infix search, we can enable the suffix tree mode, 
+where suffix search becomes an exact search and infix search becomes a prefix search, 
+at the cost of indexing every possible suffix of indexed keywords. 
+
+To enable the suffix tree mode, you can turn on/off this switch in CMakeLists.txt:
+`PDC_DART_SUFFIX_TREE_MODE`
+
+-------------------------------------------------------------------
+BULKI for dynamic data structure and serialization/deserialization
+-------------------------------------------------------------------
+
+In `src/commons/serde`, we implement the `BULKI` module for serialization and deserialization.
+
+BULKI is a data serialization and deserialization framework that supports dynamic and nested data structure.
+Every BULKI is considered a container of KEY-VALUE pairs, where every key/value is a BULKI_Entity
+BULKI_Entity is a container of one of the following:
+
+1. singleton of primitive data types, e.g. int, float, double, etc.
+2. array of primitive data types, e.g. int[3], float[32], double[22], etc.
+3. singleton of BULKI_Entity
+4. array of BULKI_Entity
+
+For more details, please refer to the `BULKI` API documentation and `bulki_serde_test.c` in `src/commons/serde`.
+
 +++++++++++++++++++++++++++++++++++++++++++++
 Object and Region Management
 +++++++++++++++++++++++++++++++++++++++++++++
@@ -283,6 +333,11 @@ Server Nonblocking Control
 
 By design, the region transfer request start does not guarantee the finish of data transfer or server I/O. In fact, this function should return to the application as soon as possible. Data transfer and server I/O can occur in the background so that client applications can take advantage of overlapping timings between application computations and PDC data management.
 
+Server Data Cache
+---------------------------------------------
+
+PDC supports server-side write data cache and is enabled in the CMake option ``PDC_SERVER_CACHE`` by default. Each time the server receives a region writerequest, it will cache the data in the server's memory without writing it to the file system. The server monitors both the total amount of cached data and how long it has not received any I/O requests to determine when to flush the data from cache to the file system. Two additional CMake options ``PDC_SERVER_CACHE_MAX_GB`` and ``PDC_SERVER_IDLE_CACHE_FLUSH_TIME`` can be set to affect the cache flush behavior. When the cached data size reaches the limit or the server is idle longer than the idle time, the flush operation is triggered. With the idle time trigger, when a new I/O request is received during the flush, PDC will stop flushng the next region and reset the timer to avoid interfering with the client's I/O. Setting ``export PDC_SERVER_CACHE_NO_FLUSH=0`` can disable the flush operation and keep the data in cache.
+
 Server Region Transfer Request Start
 ---------------------------------------------
 
@@ -292,6 +347,11 @@ In addition, the region transfer request received by the data server triggers a 
 Then, ``PDC_commit_request`` is called for request registration. This operation pushes the metadata for the region transfer request to the end of the data server's linked list for temporary storage.
 
 Finally, the server RPC returns a finished code to the client so that the client can return to the application immediately.
+
+Server Region Transfer Data Sieving
+---------------------------------------------
+When reading a 2D/3D region, PDC server uses data sieving if a subset of a storage region is requested, which would improve the read performance. The entire region is read as a contiguous chunk and the request subset will be extracted before sending the data to the client. Setting ``export PDC_DATA_SIEVING=0`` before running the server will disable this feature.
+
 
 Server Region Transfer Request Wait
 ---------------------------------------------
@@ -323,6 +383,11 @@ However, when a new region is written to an object, it is necessary to scan all 
 
 I/O by region will store repeated bytes when write requests contain overlapping parts. In addition, the region update mechanism generates extra I/O operations. This is one of its disadvantages. Optimization for region search (as R trees) in the future can relieve this problem.
 
+Storage Compression (Prototype)
+---------------------------------------------
+
+PDC has partial support for storing the compressed data for each storage regions with the ZFP compression library. Currently the compression is hard-coded to the ZFP accuracy mode.
+
 +++++++++++++++++++++++++++++++++++++++++++++
 Contributing to PDC project
 +++++++++++++++++++++++++++++++++++++++++++++
@@ -349,7 +414,7 @@ How to set up code formatter for PDC on Mac?
         sudo ln -s /opt/llvm/v10/bin/clang-format /opt/homebrew/bin/clang-format-v10
     
     
-    1. To format all your source code, do the following
+    4. To format all your source code, do the following
     
     .. code-block:: Bash
         cd pdc
@@ -357,7 +422,7 @@ How to set up code formatter for PDC on Mac?
         find src -iname *.h -o -iname *.c | xargs clang-format-v10 -i -style=file
     
     
-    1. You can also configure clang-format to be your default C/C++ formatting tool in VSCode, and the automatic code formatter is really convenient to use. 
+    5. You can also configure clang-format to be your default C/C++ formatting tool in VSCode, and the automatic code formatter is really convenient to use. 
 
 ---------------------------------------------
 How to implement an RPC?
@@ -468,13 +533,46 @@ Also, the root CMakeLists.txt file will automatically detect if HAVE_MALLOC_USAB
 If so, the memory consumption will be more accurate (summation of both allocation and freeing). Otherwise, it will be less accurate but still usable (only measure the total memory ever allocated).
 
 
-------------------------------------------------------------
-DART Suffix Tree Mode
-------------------------------------------------------------
 
-In DART, to support efficient infix search, we can enable the suffix tree mode, 
-where suffix search becomes an exact search and infix search becomes a prefix search, 
-at the cost of indexing every possible suffix of indexed keywords. 
+-----------------------------------------------------------
+Debugging PDC on Perlmutter with LinaroForge
+-----------------------------------------------------------
 
-To enable the suffix tree mode, you can turn on/off this switch in CMakeLists.txt:
-`PDC_DART_SUFFIX_TREE_MODE`
+First, you need to start an interactive session on Perlmutter:
+
+.. code-block:: Bash
+    salloc -N 1 -C cpu -q interactive -t 1:00:00
+
+Then, you can load the ``forge`` module:
+
+.. code-block:: Bash
+    module load forge
+    module list
+
+You should see the forge module loaded and the version of it. 
+
+Make sure you have the compatible version LinaroForge client installed. 
+
+Go to this website https://www.linaroforge.com/download-documentation and find the compatible version of LinaroForge client for your architecture. 
+
+To run a test, let's lunch pdc_server with 4 cores:
+
+.. code-block:: Bash
+    cd $PDC_HOME/build
+    rm -rf ./pdc_tmp # optional if you need to clean up the PDC tmp directory
+    srun -N 1 -n  4 -c 2 --mem=25600 --cpu_bind=cores ./bin/pdc_server.exe &
+
+To debug the client, you can run the following command:
+
+.. code-block:: Bash
+    cd $PDC_HOME/build
+    ddt --connect srun -N 1 -n  4 -c 2 --mem=25600 --cpu_bind=cores ./bin/pdc_client.exe
+
+But if you need to debug the server, you can prepend ``srun`` with ``ddt --connect``:
+
+.. code-block:: Bash
+    cd $PDC_HOME/build
+    rm -rf ./pdc_tmp # optional if you need to clean up the PDC tmp directory
+    ddt --connect srun -N 1 -n  4 -c 2 --mem=25600 --cpu_bind=cores ./bin/pdc_server.exe &
+
+We recommend to use 1 node when debugging PDC, but if memory is not sufficient, you can use more nodes. 
