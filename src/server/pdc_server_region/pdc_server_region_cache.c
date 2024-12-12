@@ -18,12 +18,6 @@
 #define PDC_IDLE_CACHE_FLUSH_TIME_INT 2
 #endif
 
-#ifdef PDC_SERVER_IDLE_CACHE_FLUSH_TIME
-#define PDC_IDLE_CACHE_FLUSH_TIME_INT PDC_SERVER_IDLE_CACHE_FLUSH_TIME
-#else
-#define PDC_IDLE_CACHE_FLUSH_TIME_INT 2
-#endif
-
 typedef struct pdc_region_cache {
     struct pdc_region_info * region_cache_info;
     struct pdc_region_cache *next;
